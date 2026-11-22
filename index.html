@@ -57,6 +57,18 @@ img{display:block;max-width:100%}
 .regbanner.ok{background:rgba(61,255,124,.13);border:1px solid var(--cash);color:var(--cash)}
 .regbanner.bad{background:rgba(255,77,94,.13);border:1px solid var(--red);color:#ff9aa4}
 .regbanner.unk{background:rgba(255,211,77,.1);border:1px solid #b97e1e;color:#ffd88a}
+.mapwrap{position:relative;height:300px;overflow:hidden;background:#0a0618;border:1px solid #4a2680;border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none}
+.maplayer{position:absolute;left:0;top:0;width:240px;height:327px;transform-origin:0 0}
+.maplayer img{width:240px;height:327px;display:block;pointer-events:none}
+.mappin{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#ffd34d;border:2px solid #7a4d00;box-shadow:0 0 5px rgba(0,0,0,.7);cursor:pointer;z-index:2}
+.mappin.main{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;background:var(--pink);border-color:#fff;z-index:3;animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,41,117,.55)}70%{box-shadow:0 0 0 13px rgba(255,41,117,0)}100%{box-shadow:0 0 0 0 rgba(255,41,117,0)}}
+.mapctl{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:5px;z-index:5}
+.mapctl button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:rgba(20,8,43,.92);color:var(--txt);font-size:15px;font-weight:800}
+.mapcard{background:#170a2c;border:1px solid #4a2680;border-radius:10px;padding:8px 10px;margin-top:7px}
+.mapcard .mn{font-size:13px;font-weight:800}
+.mapcard .ma{font-size:11px;color:var(--teal)}
+.mapcard .open{margin-top:6px;width:100%;background:var(--teal);color:#04231d;border:none;border-radius:8px;padding:7px;font-weight:800;font-size:12px}
 .progwrap{margin:2px 8px 8px;padding:8px 10px;background:var(--card);border:1px solid #3a1a5e;border-radius:11px}
 .progwrap .pl{font-size:10px;color:var(--dim);display:flex;justify-content:space-between}
 .progbar{height:7px;border-radius:5px;background:#0d0518;margin-top:5px;overflow:hidden}
@@ -252,6 +264,7 @@ function lootCard(e){
 function renderLoot(){
   var h=topbar('HIDDEN <em>LOOT</em>')+searchbar('Search loot, weapons, places...');
   h+='<div class="filtrow"><button class="fchip'+(state.lootFilter==='all'?' on':'')+'" onclick="state.lootFilter=\'all\';render()">All</button><button class="fchip'+(state.lootFilter==='legendary'?' on':'')+'" onclick="state.lootFilter=\'legendary\';render()">&#11088; Legendary</button><button class="fchip'+(state.lootFilter==='chapter1'?' on':'')+'" onclick="state.lootFilter=\'chapter1\';render()">Chapter 1</button><button class="fchip'+(state.lootFilter==='todo'?' on':'')+'" onclick="state.lootFilter=\'todo\';render()">Not looted</button></div>';
+  h+='<button class="bigbtn" style="margin:8px 8px 0;width:calc(100% - 16px)" onclick="go(\'map\')">&#128506; FULL MAP — ALL LOOT PINS</button>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -262,12 +275,23 @@ function lootDetail(e){
   h+='<div class="detail">';
   if(state.detailTab==='find'){
     h+='<div class="tabs"><button class="tab" onclick="state.detailTab=\'info\';render()">LOOT INFO</button><button class="tab on">&#128205; FIND IT</button></div>';
-    h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
-    if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
-    else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
-    else h+='<p>No map screenshot was available from the guides for this spot yet — the written directions below are the verified route.</p>';
-    h+='<p>'+esc(e.map_description||'')+'</p></div>';
-    h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+    if(e.coords){
+      PENDMAP={mode:'focus',coords:e.coords,id:e.id};
+      h+='<div class="dsec findit"><h3>&#128506; ON THE MAP — '+esc(e.area)+'</h3>'+mapHtml(e.id);
+      h+='<div id="mapcard">'+mapCardHtml(e,true)+'</div>';
+      if(e.coords.approx) h+='<p style="margin-top:6px">&#9888; This pin was placed from written guide descriptions (no marker source) — treat it as the approximate area and use the directions below for the final approach.</p>';
+      h+='<p style="margin-top:6px">Drag to pan, + / &minus; to zoom. Gold pins are other loot spots — tap one to preview it.</p></div>';
+      h+='<div class="dsec"><h3>WHERE EXACTLY</h3><p>'+esc(e.map_description||'')+'</p></div>';
+      h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+      if(mi.length) h+='<div class="dsec"><h3>REFERENCE PHOTO (IN-GAME MAP)</h3>'+mi.map(function(u){return '<img class="mapimg" src="'+esc(u)+'" alt="map">';}).join('')+'</div>';
+    } else {
+      h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
+      if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
+      else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
+      else h+='<p>No map screenshot was available from the guides for this spot yet — the written directions below are the verified route.</p>';
+      h+='<p>'+esc(e.map_description||'')+'</p></div>';
+      h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+    }
   } else {
     if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
     h+='<div class="dsec"><div class="nm" style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div class="ar" style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+' &middot; '+esc(e.island_region||'')+'</div></div>';
@@ -447,6 +471,52 @@ function missionDetail(m){
   return h+'</div>';
 }
 
+/* ---------- INTEGRATED MAP ---------- */
+var PENDMAP=null;
+var MAPW=240, MAPH=300, LAYW=240, LAYH=327;
+var mapView={s:1,tx:0,ty:0};
+var mapSel=null, mapFocusId=null, mapDrag=null;
+function pinXY(c){ return {x:c.x/1000*LAYW, y:c.y/1000*LAYH}; }
+function clampMap(){ var w=LAYW*mapView.s, h=LAYH*mapView.s;
+  mapView.tx = w<=MAPW ? (MAPW-w)/2 : Math.min(0, Math.max(MAPW-w, mapView.tx));
+  mapView.ty = h<=MAPH ? (MAPH-h)/2 : Math.min(0, Math.max(MAPH-h, mapView.ty)); }
+function applyMap(){ var l=document.getElementById('maplayer'); if(l) l.style.transform='translate('+mapView.tx+'px,'+mapView.ty+'px) scale('+mapView.s+')'; }
+function centerMap(c,s){ mapView.s=s; var p=pinXY(c); mapView.tx=MAPW/2-p.x*s; mapView.ty=MAPH/2-p.y*s; clampMap(); applyMap(); }
+function zoomMap(f){ var ns=Math.min(6,Math.max(0.9,mapView.s*f)), k=ns/mapView.s; mapView.tx=MAPW/2-(MAPW/2-mapView.tx)*k; mapView.ty=MAPH/2-(MAPH/2-mapView.ty)*k; mapView.s=ns; clampMap(); applyMap(); }
+function resetMap(){ if(mapFocusId){ var e=DATA.loot.filter(function(x){return x.id===mapFocusId;})[0]; if(e&&e.coords){ centerMap(e.coords,3); return; } } centerMap({x:500,y:500},MAPH/LAYH); }
+function mapHtml(focusId){
+  var pins=DATA.loot.filter(function(e){return e.coords;}).map(function(e){ var p=pinXY(e.coords); return '<div class="mappin'+(e.id===focusId?' main':'')+'" style="left:'+p.x+'px;top:'+p.y+'px" onclick="pinTap(event,\''+e.id+'\')"></div>'; }).join('');
+  return '<div class="mapwrap" id="mapwrap"><div class="maplayer" id="maplayer"><img src="assets/map-full.jpg" alt="Leonida map">'+pins+'</div><div class="mapctl"><button onclick="zoomMap(1.4)">+</button><button onclick="zoomMap(0.7)">&minus;</button><button onclick="resetMap()">&#10227;</button></div></div>';
+}
+function mapCardHtml(e,isFocus){
+  var top=e.loot&&e.loot[0]?e.loot[0].name:'';
+  var h='<div class="mapcard"><div class="mn">&#128205; '+esc(e.name)+'</div><div class="ma">'+esc(e.area)+(e.coords&&e.coords.approx?' &middot; pin approximate':'')+'</div>';
+  if(top) h+='<div style="font-size:11.5px;margin-top:3px">Top loot: <b>'+esc(top)+'</b></div>';
+  h+='<p style="font-size:11.5px;margin-top:4px">'+esc(String(e.map_description||'').slice(0,220))+'</p>';
+  if(!isFocus) h+='<button class="open" onclick="openLoot(\''+e.id+'\')">OPEN THIS SPOT</button>';
+  else h+='<div style="font-size:10.5px;color:var(--dim);margin-top:4px">This is the spot you are viewing — full directions below.</div>';
+  return h+'</div>';
+}
+function pinTap(ev,id){ ev.stopPropagation(); if(mapDrag&&mapDrag.moved>6) return; var e=DATA.loot.filter(function(x){return x.id===id;})[0]; if(!e) return;
+  if(mapSel===id && id!==mapFocusId){ openLoot(id); return; }
+  mapSel=id; var c=document.getElementById('mapcard'); if(c) c.innerHTML=mapCardHtml(e, id===mapFocusId); }
+function initMapDrag(){ var w=document.getElementById('mapwrap'); if(!w) return;
+  w.addEventListener('pointerdown',function(ev){ mapDrag={x:ev.clientX,y:ev.clientY,tx:mapView.tx,ty:mapView.ty,moved:0}; });
+  w.addEventListener('pointermove',function(ev){ if(!mapDrag) return; var dx=ev.clientX-mapDrag.x, dy=ev.clientY-mapDrag.y; mapDrag.moved=Math.max(mapDrag.moved,Math.abs(dx)+Math.abs(dy)); mapView.tx=mapDrag.tx+dx; mapView.ty=mapDrag.ty+dy; clampMap(); applyMap(); });
+  var end=function(){ setTimeout(function(){ mapDrag=null; },50); };
+  w.addEventListener('pointerup',end); w.addEventListener('pointercancel',end); w.addEventListener('pointerleave',end);
+}
+function maybeInitMap(){ if(!PENDMAP) return; var p=PENDMAP; PENDMAP=null; mapFocusId=p.id||null; mapSel=p.id||null; initMapDrag();
+  if(p.mode==='focus') centerMap(p.coords,3); else centerMap({x:500,y:500},MAPH/LAYH); }
+function renderMapOverview(){
+  PENDMAP={mode:'fit'};
+  var h=topbar('LEONIDA <em>MAP</em>');
+  h+='<div class="detail"><div class="dsec"><h3>&#128506; ALL HIDDEN LOOT — '+DATA.loot.filter(function(e){return e.coords;}).length+' PINS</h3>'+mapHtml(null);
+  h+='<div id="mapcard"><div class="mapcard"><div class="mn">Tap any gold pin</div><p style="font-size:11.5px;margin-top:3px">The pink pin style marks nothing here — every gold pin is a loot spot. Tap once to preview it, tap again (or OPEN) to jump to its full card with directions. Drag to pan, + / &minus; to zoom.</p></div></div>';
+  h+='<p style="margin-top:6px;font-size:11px;color:var(--dim)">Map: community base map via gta6map.io. Pins matched from that map\'s own markers; 8 pins placed from written descriptions are marked approximate on their cards.</p></div></div>';
+  $('app').innerHTML=h; maybeInitMap();
+}
+
 /* ---------- render dispatch ---------- */
 function renderList(){
   var w=$('listwrap'); if(!w) return;
@@ -458,7 +528,7 @@ function renderList(){
 function render(){
   if(!DATA) return;
   if(state.detail){
-    if(state.detail.type==='loot'){ var e=DATA.loot.filter(function(x){return x.id===state.detail.id;})[0]; if(e){$('app').innerHTML=lootDetail(e); return;} }
+    if(state.detail.type==='loot'){ var e=DATA.loot.filter(function(x){return x.id===state.detail.id;})[0]; if(e){PENDMAP=null; $('app').innerHTML=lootDetail(e); maybeInitMap(); return;} }
     if(state.detail.type==='egg'){ var g=DATA.eggs.filter(function(x){return x.id===state.detail.id;})[0]; if(g){$('app').innerHTML=eggDetail(g); return;} }
     if(state.detail.type==='mission'){ var m=DATA.missions.filter(function(x){return x.overall_number===state.detail.id;})[0]; if(m){$('app').innerHTML=missionDetail(m); return;} }
     if(state.detail.type==='vehicle'){ var vh=(DATA.vehicles||[]).filter(function(x){return x.id===state.detail.id;})[0]; if(vh){$('app').innerHTML=vehicleDetail(vh); return;} }
@@ -469,6 +539,7 @@ function render(){
   else if(state.screen==='eggs') renderEggs();
   else if(state.screen==='story') renderStory();
   else if(state.screen==='vehicles') renderVehicles();
+  else if(state.screen==='map') renderMapOverview();
 }
 </script>
 </body>
