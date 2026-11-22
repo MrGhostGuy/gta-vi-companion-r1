@@ -47,7 +47,16 @@ img{display:block;max-width:100%}
 .mbtn .t{font-family:Impact,'Arial Black',sans-serif;font-size:16px;letter-spacing:1.2px}
 .mbtn .d{font-size:10px;color:var(--dim);margin-top:1px}
 .mbtn .n{margin-left:auto;font-size:10px;font-weight:800;color:#0d0518;background:var(--teal);border-radius:20px;padding:2px 7px}
-.mbtn.loot{border-color:#8a6d1f}.mbtn.eggs{border-color:#1f7a6d}.mbtn.story{border-color:#7a1f56}
+.mbtn.loot{border-color:#8a6d1f}.mbtn.eggs{border-color:#1f7a6d}.mbtn.story{border-color:#7a1f56}.mbtn.cars{border-color:#1f4d8a}
+.secbox{background:#170a2c;border:1px solid #4a2680;border-radius:10px;padding:7px 9px}
+.secbox .srow{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3.5px 0;border-bottom:1px solid #2a1247}
+.secbox .srow:last-child{border-bottom:none}
+.secbox .sk{color:var(--dim)}.secbox .sv{font-weight:800;text-align:right}
+.sv.ok{color:var(--cash)}.sv.bad{color:#ff9aa4}.sv.unk{color:#ffd88a}
+.regbanner{border-radius:10px;padding:8px 10px;font-size:12px;font-weight:800;text-align:center;margin:8px 10px 0;letter-spacing:.4px}
+.regbanner.ok{background:rgba(61,255,124,.13);border:1px solid var(--cash);color:var(--cash)}
+.regbanner.bad{background:rgba(255,77,94,.13);border:1px solid var(--red);color:#ff9aa4}
+.regbanner.unk{background:rgba(255,211,77,.1);border:1px solid #b97e1e;color:#ffd88a}
 .progwrap{margin:2px 8px 8px;padding:8px 10px;background:var(--card);border:1px solid #3a1a5e;border-radius:11px}
 .progwrap .pl{font-size:10px;color:var(--dim);display:flex;justify-content:space-between}
 .progbar{height:7px;border-radius:5px;background:#0d0518;margin-top:5px;overflow:hidden}
@@ -166,7 +175,8 @@ function counts(){
   var m=DATA.missions.length, md=DATA.missions.filter(function(x){return store.done['m'+x.overall_number];}).length;
   var l=DATA.loot.length, lf=DATA.loot.filter(function(x){return store.found['l'+x.id];}).length;
   var e=DATA.eggs.length, ef=DATA.eggs.filter(function(x){return store.found['e'+x.id];}).length;
-  return {m:m,md:md,l:l,lf:lf,e:e,ef:ef,pct:Math.round(((md+lf+ef)/(m+l+e))*100)||0};
+  var v=(DATA.vehicles||[]).length, vf=(DATA.vehicles||[]).filter(function(x){return store.found['v'+x.id];}).length;
+  return {m:m,md:md,l:l,lf:lf,e:e,ef:ef,v:v,vf:vf,pct:Math.round(((md+lf+ef+vf)/(m+l+e+v))*100)||0};
 }
 function nextMission(){ for(var i=0;i<DATA.missions.length;i++){ if(!store.done['m'+DATA.missions[i].overall_number]) return DATA.missions[i]; } return null; }
 function renderHome(){
@@ -177,6 +187,7 @@ function renderHome(){
   h+='<div class="menu">';
   h+='<button class="mbtn loot" onclick="go(\'loot\')"><span class="ic">&#128176;</span><span><div class="t">HIDDEN LOOT</div><div class="d">Illegal ops, stash houses, unique weapons</div></span><span class="n">'+c.lf+'/'+c.l+'</span></button>';
   h+='<button class="mbtn eggs" onclick="go(\'eggs\')"><span class="ic">&#129370;</span><span><div class="t">EASTER EGGS</div><div class="d">Secrets, sightings &amp; hidden scenes</div></span><span class="n">'+c.ef+'/'+c.e+'</span></button>';
+  h+='<button class="mbtn cars" onclick="go(\'vehicles\')"><span class="ic">&#128663;</span><span><div class="t">SPECIAL VEHICLES</div><div class="d">Hidden cars &amp; their security: register or joyride?</div></span><span class="n">'+c.vf+'/'+c.v+'</span></button>';
   h+='<button class="mbtn story" onclick="go(\'story\')"><span class="ic">&#127902;</span><span><div class="t">STORY PROGRESSION</div><div class="d">Every main mission, in order, by chapter</div></span><span class="n">'+c.md+'/'+c.m+'</span></button>';
   h+='</div><div class="foot">Unofficial fan companion. Loot &amp; mission data cross-checked across multiple guides; anything not verified is labelled in its entry.<br>New finds are added by data update — no reinstall needed.</div>';
   $('app').innerHTML=h;
@@ -323,6 +334,65 @@ function eggDetail(e){
   return h+'</div>';
 }
 
+/* ---------- VEHICLES ---------- */
+function regState(v){
+  var s=v.security||{};
+  if(s.can_register===true) return {cls:'ok',label:'&#10003; CAN BE REGISTERED — KEEP IT'};
+  if(s.can_register===false) return {cls:'bad',label:'&#9888; DRIVE-ONLY — CANNOT REGISTER'};
+  return {cls:'unk',label:'? REGISTRATION NOT REPORTED YET'};
+}
+function secBadges(v){
+  var s=v.security||{}, h='';
+  if(s.key_cloner_needed===true) h+='<span class="bdg g-high">&#128273; KEY CLONER NEEDED</span>';
+  else if(s.key_cloner_needed===false) h+='<span class="bdg g-low">&#128273; No key needed</span>';
+  if(s.tracker==='advanced') h+='<span class="bdg g-high">&#128225; Advanced tracker</span>';
+  else if(s.tracker==='none') h+='<span class="bdg g-low">&#128225; No tracker</span>';
+  if(s.alarm==='alarmed') h+='<span class="bdg g-med">&#128276; Alarmed</span>';
+  return h;
+}
+function vehicleMatches(v){
+  if(state.query){ var q=state.query.toLowerCase(), hay=(v.name+' '+v.area+' '+(v.real_world_equivalent||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+  return true;
+}
+function vehicleCard(v){
+  var im=allImgs(v), got=!!store.found['v'+v.id], rs=regState(v);
+  var h='<div class="card" onclick="openVehicle(\''+v.id+'\')">';
+  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128663;</div>';
+  h+='<div class="cb"><div class="nm">'+esc(v.name)+'</div><div class="ar">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>';
+  if(v.real_world_equivalent) h+='<div class="lootline" style="color:var(--dim)">Real-world twin: '+esc(v.real_world_equivalent)+'</div>';
+  h+='<div class="badges"><span class="bdg '+(rs.cls==='ok'?'done':rs.cls==='bad'?'g-high':'g-med')+'">'+(rs.cls==='ok'?'REGISTERABLE':rs.cls==='bad'?'DRIVE-ONLY':'REGISTER: UNKNOWN')+'</span>'+secBadges(v)+(got?'<span class="bdg done">&#10003; GOT IT</span>':'')+'</div>';
+  return h+'</div></div>';
+}
+function renderVehicles(){
+  var h=topbar('SPECIAL <em>VEHICLES</em>')+searchbar('Search cars...');
+  h+='<div class="note" style="margin:8px 8px 0">&#128663; Security decides the prize: a car with <b>no tracker and no key needed</b> can be registered and kept (registration unlocks in Chapter 2 at Moses\' garage). A car with an <b>advanced tracker</b> or that <b>needs a key cloner</b> may only be a joyride or a sell — check each car\'s panel before you plan around keeping it.</div>';
+  h+='<div class="list" id="listwrap"></div>';
+  $('app').innerHTML=h; renderList();
+}
+function openVehicle(id){ state.detail={type:'vehicle',id:id}; state.screen='vehicles'; state.detailTab='info'; window.scrollTo(0,0); render(); }
+function secRow(k,val,cls){ return '<div class="srow"><span class="sk">'+k+'</span><span class="sv '+(cls||'')+'">'+val+'</span></div>'; }
+function vehicleDetail(v){
+  var got=!!store.found['v'+v.id], li=locImgs(v), s=v.security||{}, rs=regState(v);
+  var h=topbar('SPECIAL <em>VEHICLES</em>')+'<div class="detail">';
+  if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+  h+='<div class="dsec"><div style="font-size:15px;font-weight:800">'+esc(v.name)+'</div><div style="font-size:11px;color:var(--teal)">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>'+(v.real_world_equivalent?'<div style="font-size:11px;color:var(--dim);margin-top:2px">Real-world twin: '+esc(v.real_world_equivalent)+'</div>':'')+'</div>';
+  h+='<div class="regbanner '+rs.cls+'">'+rs.label+'</div>';
+  h+='<div class="dsec"><h3>&#128272; SECURITY &amp; KEEPING IT</h3><div class="secbox">';
+  h+=secRow('Alarm', s.alarm==='alarmed'?'Alarmed':s.alarm==='none'?'None':'Not reported', s.alarm==='alarmed'?'bad':s.alarm==='none'?'ok':'unk');
+  h+=secRow('Tracker', s.tracker==='advanced'?'Advanced tracker':s.tracker==='none'?'None':'Not reported', s.tracker==='advanced'?'bad':s.tracker==='none'?'ok':'unk');
+  h+=secRow('Key cloner needed', s.key_cloner_needed===true?'YES':s.key_cloner_needed===false?'No':'Not reported', s.key_cloner_needed===true?'bad':s.key_cloner_needed===false?'ok':'unk');
+  h+=secRow('Can register', s.can_register===true?'Yes':s.can_register===false?'No':'Not reported', s.can_register===true?'ok':s.can_register===false?'bad':'unk');
+  if(s.register_cost) h+=secRow('Register cost', esc(s.register_cost),'');
+  if(s.sell_value) h+=secRow('Sell value', esc(s.sell_value),'ok');
+  h+='</div>'+(s.notes?'<p style="margin-top:5px">'+esc(s.notes)+'</p>':'')+'</div>';
+  h+='<div class="dsec"><h3>HOW TO GET IT</h3>'+stepsHtml(v.how_to_get)+'</div>';
+  h+='<div class="dsec"><h3>DETAILS</h3><p class="kv">Available: <b>'+esc(v.chapter_available||'Free roam')+'</b>'+(v.is_mission_locked?'<br><b style="color:#ff9aa4">Mission-locked</b>':'')+(v.confidence?'<br>Confidence: <b>'+esc(v.confidence)+'</b>':'')+'</p></div>';
+  if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+  h+=srcsHtml(v.sources);
+  h+='<button class="bigbtn'+(got?' found':'')+'" onclick="toggleFound(\'v\',\''+v.id+'\')">'+(got?'&#10003; IN MY GARAGE':'MARK AS GOT IT')+'</button>';
+  return h+'</div>';
+}
+
 /* ---------- STORY ---------- */
 function renderStory(){
   var h=topbar('STORY <em>PROGRESSION</em>')+searchbar('Search missions...');
@@ -378,6 +448,7 @@ function renderList(){
   if(state.screen==='loot'){ var list=DATA.loot.filter(lootMatches); w.innerHTML=list.length?list.map(lootCard).join(''):'<div class="empty">No loot matches.</div>'; }
   else if(state.screen==='eggs'){ var list2=DATA.eggs.filter(eggMatches); w.innerHTML=list2.length?list2.map(eggCard).join(''):'<div class="empty">No easter eggs match.</div>'; }
   else if(state.screen==='story'){ w.innerHTML=storyHtml(); }
+  else if(state.screen==='vehicles'){ var list3=(DATA.vehicles||[]).filter(vehicleMatches); w.innerHTML=list3.length?list3.map(vehicleCard).join(''):'<div class="empty">No vehicles match.</div>'; }
 }
 function render(){
   if(!DATA) return;
@@ -385,12 +456,14 @@ function render(){
     if(state.detail.type==='loot'){ var e=DATA.loot.filter(function(x){return x.id===state.detail.id;})[0]; if(e){$('app').innerHTML=lootDetail(e); return;} }
     if(state.detail.type==='egg'){ var g=DATA.eggs.filter(function(x){return x.id===state.detail.id;})[0]; if(g){$('app').innerHTML=eggDetail(g); return;} }
     if(state.detail.type==='mission'){ var m=DATA.missions.filter(function(x){return x.overall_number===state.detail.id;})[0]; if(m){$('app').innerHTML=missionDetail(m); return;} }
+    if(state.detail.type==='vehicle'){ var vh=(DATA.vehicles||[]).filter(function(x){return x.id===state.detail.id;})[0]; if(vh){$('app').innerHTML=vehicleDetail(vh); return;} }
     state.detail=null;
   }
   if(state.screen==='home') renderHome();
   else if(state.screen==='loot') renderLoot();
   else if(state.screen==='eggs') renderEggs();
   else if(state.screen==='story') renderStory();
+  else if(state.screen==='vehicles') renderVehicles();
 }
 </script>
 </body>
