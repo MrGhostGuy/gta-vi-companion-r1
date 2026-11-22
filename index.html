@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=240, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GTA VI Companion</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ff2975; --purple:#9b30d9; --teal:#00e5c7; --sun:#ffb347;
+  --gold:#ffd34d; --epic:#c77dff; --cash:#3dff7c; --bg:#0d0518; --card:#1a0b2e; --card2:#241040;
+  --txt:#f5eefc; --dim:#b9a8d9; --red:#ff4d5e;
+}
+html,body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,Arial,sans-serif;width:240px;margin:0 auto}
+body{min-height:282px;background:linear-gradient(180deg,#2b0a4a 0%,#0d0518 30%)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+img{display:block;max-width:100%}
+
+/* ---------- header / hero ---------- */
+.hero{position:relative;padding:10px 8px 8px;text-align:center;background:
+  radial-gradient(120px 60px at 50% -10px, rgba(255,179,71,.85), rgba(255,41,117,.35) 55%, transparent 75%),
+  linear-gradient(180deg,#57126e 0%,#2b0a4a 70%,transparent);}
+.hero .gta{font-family:Impact,'Arial Black',sans-serif;font-size:15px;letter-spacing:2.5px;color:#fff;text-shadow:0 2px 0 #000,0 0 12px rgba(255,41,117,.8)}
+.hero .vi{font-family:Impact,'Arial Black',sans-serif;font-size:64px;line-height:.95;
+  background:linear-gradient(180deg,#ffe259 5%,#ff7518 30%,#ff2975 55%,#9b30d9 80%,#00e5c7 105%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.85)) drop-shadow(0 0 14px rgba(155,48,217,.55))}
+.hero .sub{font-size:10px;letter-spacing:3px;color:var(--teal);font-weight:700;margin-top:1px}
+.hero .upd{font-size:8.5px;color:var(--dim);margin-top:4px}
+.palms{font-size:13px;letter-spacing:8px;opacity:.85}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(13,5,24,.96);border-bottom:1px solid #3a1a5e}
+.topbar .back{font-size:17px;color:var(--teal);padding:2px 6px 2px 0}
+.topbar .ttl{font-family:Impact,'Arial Black',sans-serif;font-size:14px;letter-spacing:1.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .ttl em{font-style:normal;color:var(--pink)}
+.searchbar{padding:6px 8px 2px}
+.searchbar input{width:100%;padding:7px 9px;border-radius:9px;border:1px solid #4a2680;background:#170a2c;color:#fff;font-size:12px;outline:none}
+.searchbar input:focus{border-color:var(--pink)}
+
+/* ---------- menu ---------- */
+.menu{padding:8px}
+.mbtn{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:12px 11px;margin-bottom:8px;border-radius:13px;color:#fff;
+  background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid #4a2680;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+.mbtn:active{transform:scale(.98)}
+.mbtn .ic{font-size:24px}
+.mbtn .t{font-family:Impact,'Arial Black',sans-serif;font-size:16px;letter-spacing:1.2px}
+.mbtn .d{font-size:10px;color:var(--dim);margin-top:1px}
+.mbtn .n{margin-left:auto;font-size:10px;font-weight:800;color:#0d0518;background:var(--teal);border-radius:20px;padding:2px 7px}
+.mbtn.loot{border-color:#8a6d1f}.mbtn.eggs{border-color:#1f7a6d}.mbtn.story{border-color:#7a1f56}
+.progwrap{margin:2px 8px 8px;padding:8px 10px;background:var(--card);border:1px solid #3a1a5e;border-radius:11px}
+.progwrap .pl{font-size:10px;color:var(--dim);display:flex;justify-content:space-between}
+.progbar{height:7px;border-radius:5px;background:#0d0518;margin-top:5px;overflow:hidden}
+.progbar i{display:block;height:100%;background:linear-gradient(90deg,var(--pink),var(--purple),var(--teal));border-radius:5px}
+.nextup{margin:0 8px 10px;padding:8px 10px;border:1px dashed var(--gold);border-radius:11px;background:rgba(255,211,77,.07);font-size:11px}
+.nextup b{color:var(--gold)}
+
+/* ---------- cards ---------- */
+.list{padding:6px 8px 14px}
+.card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid #3d1c66;border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+.card:active{border-color:var(--pink)}
+.card .thumb{width:100%;height:86px;object-fit:cover;background:#0a0313}
+.card .noimg{height:52px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#3a1052,#14062a)}
+.card .cb{padding:7px 9px 8px}
+.card .nm{font-size:13px;font-weight:800;line-height:1.25}
+.card .ar{font-size:10px;color:var(--teal);margin-top:1px}
+.lootline{font-size:11px;margin-top:4px;line-height:1.45}
+.r-legendary{color:var(--gold);font-weight:800;text-shadow:0 0 7px rgba(255,211,77,.85)}
+.r-epic{color:var(--epic);font-weight:800;text-shadow:0 0 7px rgba(199,125,255,.8)}
+.r-cash{color:var(--cash);font-weight:800;text-shadow:0 0 6px rgba(61,255,124,.65)}
+.r-sellable{color:var(--cash);font-weight:700}
+.r-vehicle{color:#7cc7ff;font-weight:700}
+.r-other{color:#e8ddf7;font-weight:700}
+.badges{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.bdg{font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:20px;background:#0d0518;border:1px solid #4a2680;color:var(--dim)}
+.bdg.g-high{border-color:var(--red);color:#ff9aa4}.bdg.g-med{border-color:#b97e1e;color:#ffd88a}.bdg.g-low{border-color:#2e7d4f;color:#8affb0}
+.bdg.miss{border-color:var(--red);color:#fff;background:rgba(255,77,94,.25)}
+.bdg.done{border-color:var(--cash);color:var(--cash)}
+.filtrow{display:flex;gap:5px;padding:6px 8px 0;flex-wrap:wrap}
+.fchip{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid #4a2680;color:var(--dim);background:#170a2c}
+.fchip.on{color:#0d0518;background:var(--teal);border-color:var(--teal)}
+
+/* ---------- detail ---------- */
+.detail{padding:0 0 16px}
+.detail .photo{width:100%;max-height:170px;object-fit:cover;background:#0a0313}
+.dsec{padding:8px 10px 0}
+.dsec h3{font-family:Impact,'Arial Black',sans-serif;font-size:12.5px;letter-spacing:1.4px;color:var(--pink);margin-bottom:4px}
+.dsec p,.dsec li{font-size:11.5px;line-height:1.5;color:#efe8fb}
+.dsec ul,.dsec ol{padding-left:16px}
+.dsec li{margin-bottom:3px}
+.lootrow{display:flex;gap:7px;align-items:center;background:#170a2c;border:1px solid #3a1a5e;border-radius:9px;padding:6px 8px;margin-bottom:5px}
+.lootrow img{width:44px;height:44px;object-fit:cover;border-radius:6px}
+.lootrow .ln{font-size:12px}
+.lootrow .ld{font-size:10px;color:var(--dim)}
+.warn{background:rgba(255,77,94,.14);border:1px solid var(--red);border-radius:9px;padding:7px 9px;font-size:11px;margin:8px 10px 0;line-height:1.45}
+.note{background:rgba(0,229,199,.08);border:1px solid #1f7a6d;border-radius:9px;padding:7px 9px;font-size:11px;margin:8px 10px 0;line-height:1.45}
+.tabs{display:flex;gap:6px;padding:10px 10px 0}
+.tab{flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-family:Impact,'Arial Black',sans-serif;font-size:12px;letter-spacing:1px;background:#170a2c;border:1px solid #4a2680;color:var(--dim)}
+.tab.on{color:#0d0518;background:linear-gradient(90deg,var(--sun),var(--pink));border-color:transparent}
+.findit .mapimg{width:100%;border-radius:10px;border:1px solid #4a2680;margin-bottom:6px}
+.bigbtn{display:block;width:calc(100% - 20px);margin:12px 10px 0;padding:11px;border-radius:11px;text-align:center;
+  font-family:Impact,'Arial Black',sans-serif;font-size:14px;letter-spacing:1.2px;color:#0d0518;background:linear-gradient(90deg,var(--teal),#5df2ff)}
+.bigbtn.found{background:linear-gradient(90deg,#1d5c38,var(--cash));color:#04140a}
+.srcs{padding:8px 10px 0;font-size:9px;color:#7d6ba3;line-height:1.5;word-break:break-all}
+.kv{font-size:11.5px;line-height:1.55}.kv b{color:var(--teal)}
+.reward-big{font-size:15px;font-weight:800;color:var(--cash);text-shadow:0 0 8px rgba(61,255,124,.5)}
+.reward-none{font-size:11.5px;color:#ffd88a}
+
+/* ---------- missions ---------- */
+.chap{margin:6px 8px 0;border:1px solid #3d1c66;border-radius:12px;overflow:hidden;background:var(--card)}
+.chaphead{width:100%;display:flex;align-items:center;gap:7px;text-align:left;padding:10px;background:linear-gradient(135deg,var(--card2),transparent)}
+.chaphead .ct{font-family:Impact,'Arial Black',sans-serif;font-size:13.5px;letter-spacing:1px;flex:1}
+.chaphead .cn{font-size:9.5px;color:var(--dim)}
+.chaphead .arr{color:var(--teal);font-size:13px}
+.mrow{display:flex;align-items:center;gap:7px;width:100%;text-align:left;padding:8px 10px;border-top:1px solid #2a1247;font-size:12px}
+.mrow .no{color:var(--dim);font-size:10px;width:20px;flex:none}
+.mrow .mn{flex:1;font-weight:600;line-height:1.3}
+.mrow .chk{flex:none;width:19px;height:19px;border-radius:6px;border:1.5px solid #4a2680;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--cash)}
+.mrow.isdone .mn{color:var(--dim);text-decoration:line-through}
+.mrow.next{ background:rgba(255,211,77,.08)}
+.mrow.next .mn{color:var(--gold)}
+.foot{padding:10px;text-align:center;font-size:9px;color:#7d6ba3;line-height:1.6}
+.hidden{display:none!important}
+.empty{padding:22px 12px;text-align:center;color:var(--dim);font-size:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+var DATA=null, LS='gtavi-companion-v1';
+var state={screen:'home',lootFilter:'all',eggFilter:'all',openChap:1,detail:null,detailTab:'info',query:''};
+var store={done:{},found:{}};
+try{var s=localStorage.getItem(LS); if(s) store=JSON.parse(s);}catch(e){}
+function save(){try{localStorage.setItem(LS,JSON.stringify(store));}catch(e){}}
+function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function $(id){return document.getElementById(id);}
+function rarityClass(r){return 'r-'+(r||'other');}
+function glowLoot(l){return '<span class="'+rarityClass(l.rarity)+'">'+esc(l.name)+'</span>';}
+
+/* ---------- boot: remote data.json (auto-updates from GitHub), cache fallback ---------- */
+function boot(data,fromCache){
+  DATA=data;
+  if(!fromCache){try{localStorage.setItem(LS+'-data',JSON.stringify(data));}catch(e){}}
+  render();
+}
+fetch('data.json?v='+Date.now()).then(function(r){return r.json();}).then(function(d){boot(d,false);})
+.catch(function(){
+  try{var c=localStorage.getItem(LS+'-data'); if(c){boot(JSON.parse(c),true);return;}}catch(e){}
+  $('app').innerHTML='<div class="empty">Could not load data.<br>Check connection and reopen.</div>';
+});
+
+/* ---------- navigation ---------- */
+function go(screen,detail){state.screen=screen;state.detail=detail||null;state.detailTab='info';window.scrollTo(0,0);render();}
+function back(){ if(state.detail){state.detail=null;render();window.scrollTo(0,0);} else go('home'); }
+
+function topbar(title){
+  return '<div class="topbar"><button class="back" onclick="back()">&#9664;</button><div class="ttl">'+title+'</div></div>';
+}
+function searchbar(ph){
+  return '<div class="searchbar"><input id="q" type="text" placeholder="'+ph+'" value="'+esc(state.query)+'" oninput="state.query=this.value;renderList()"></div>';
+}
+
+/* ---------- home ---------- */
+function counts(){
+  var m=DATA.missions.length, md=DATA.missions.filter(function(x){return store.done['m'+x.overall_number];}).length;
+  var l=DATA.loot.length, lf=DATA.loot.filter(function(x){return store.found['l'+x.id];}).length;
+  var e=DATA.eggs.length, ef=DATA.eggs.filter(function(x){return store.found['e'+x.id];}).length;
+  return {m:m,md:md,l:l,lf:lf,e:e,ef:ef,pct:Math.round(((md+lf+ef)/(m+l+e))*100)||0};
+}
+function nextMission(){ for(var i=0;i<DATA.missions.length;i++){ if(!store.done['m'+DATA.missions[i].overall_number]) return DATA.missions[i]; } return null; }
+function renderHome(){
+  var c=counts(), nx=nextMission();
+  var h='<div class="hero"><div class="palms">&#127796; &#127796; &#127796;</div><div class="gta">GRAND THEFT AUTO</div><div class="vi">VI</div><div class="sub">LEONIDA COMPANION</div><div class="upd">Data updated '+esc(DATA.updated)+' &middot; v'+esc(DATA.version)+'</div></div>';
+  h+='<div class="progwrap"><div class="pl"><span>Overall completion</span><b>'+c.pct+'%</b></div><div class="progbar"><i style="width:'+c.pct+'%"></i></div></div>';
+  if(nx) h+='<div class="nextup">&#9654; <b>Up next:</b> Ch.'+nx.chapter+' &middot; '+esc(nx.name)+'</div>';
+  h+='<div class="menu">';
+  h+='<button class="mbtn loot" onclick="go(\'loot\')"><span class="ic">&#128176;</span><span><div class="t">HIDDEN LOOT</div><div class="d">Illegal ops, stash houses, unique weapons</div></span><span class="n">'+c.lf+'/'+c.l+'</span></button>';
+  h+='<button class="mbtn eggs" onclick="go(\'eggs\')"><span class="ic">&#129370;</span><span><div class="t">EASTER EGGS</div><div class="d">Secrets, sightings &amp; hidden scenes</div></span><span class="n">'+c.ef+'/'+c.e+'</span></button>';
+  h+='<button class="mbtn story" onclick="go(\'story\')"><span class="ic">&#127902;</span><span><div class="t">STORY PROGRESSION</div><div class="d">Every main mission, in order, by chapter</div></span><span class="n">'+c.md+'/'+c.m+'</span></button>';
+  h+='</div><div class="foot">Unofficial fan companion. Loot &amp; mission data cross-checked across multiple guides; anything not verified is labelled in its entry.<br>New finds are added by data update — no reinstall needed.</div>';
+  $('app').innerHTML=h;
+}
+/* ---------- shared bits ---------- */
+function stepsHtml(d){
+  if(!d) return '';
+  var parts = Array.isArray(d) ? d : String(d).split(/(?=\b\d+\)\s)/).map(function(s){return s.trim();}).filter(Boolean);
+  if(parts.length>1) return '<ol>'+parts.map(function(s){return '<li>'+esc(s.replace(/^\d+\)\s*/,''))+'</li>';}).join('')+'</ol>';
+  return '<p>'+esc(d)+'</p>';
+}
+function srcsHtml(list){
+  if(!list||!list.length) return '';
+  return '<div class="srcs">Sources: '+list.map(function(u){return esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]);}).join(' &middot; ')+'</div>';
+}
+function guardBadge(g){
+  if(!g) return '';
+  var cls = g.level==='high'?'g-high':(g.level==='medium'||g.level==='med')?'g-med':'g-low';
+  return '<span class="bdg '+cls+'">&#128737; Guards: '+esc(g.level)+'</span>';
+}
+function imgsOf(entry,kind){
+  var li=entry.local_images;
+  if(li){ if(Array.isArray(li)&&li.length) return li; if(li[kind]&&li[kind].length) return li[kind]; }
+  return [];
+}
+function allImgs(entry){
+  var li=entry.local_images, out=[];
+  if(li){ if(Array.isArray(li)) return li; ['location','map','loot'].forEach(function(k){(li[k]||[]).forEach(function(u){out.push(u);});}); return out; }
+  if(Array.isArray(entry.image_urls)) return entry.image_urls.filter(function(u){return u.indexOf('assets/')===0;});
+  return [];
+}
+function mapImgs(entry){
+  var li=entry.local_images;
+  if(li&&!Array.isArray(li)&&li.map&&li.map.length) return li.map;
+  var all=allImgs(entry);
+  return all.filter(function(u){return /map/i.test(u);});
+}
+function locImgs(entry){
+  var m=mapImgs(entry), all=allImgs(entry);
+  var rest=all.filter(function(u){return m.indexOf(u)<0;});
+  return rest.length?rest:all;
+}
+
+/* ---------- LOOT ---------- */
+function lootMatches(e){
+  if(state.lootFilter==='legendary' && !e.loot.some(function(l){return l.rarity==='legendary';})) return false;
+  if(state.lootFilter==='chapter1' && !/chapter 1/i.test(e.chapter_available||'')) return false;
+  if(state.lootFilter==='todo' && store.found['l'+e.id]) return false;
+  if(state.query){ var q=state.query.toLowerCase(), hay=(e.name+' '+e.area+' '+e.loot.map(function(l){return l.name;}).join(' ')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+  return true;
+}
+function lootCard(e){
+  var im=allImgs(e), found=!!store.found['l'+e.id];
+  var h='<div class="card" onclick="openLoot(\''+e.id+'\')">';
+  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128176;</div>';
+  h+='<div class="cb"><div class="nm">'+esc(e.name.replace(/\s*\(.*Operation\)/,''))+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
+  h+='<div class="lootline">'+e.loot.slice(0,3).map(glowLoot).join(' &middot; ')+'</div>';
+  if(e.cash_estimate) h+='<div class="lootline"><span class="r-cash">'+esc(e.cash_estimate.split('.')[0].split('—')[0].slice(0,90))+'</span></div>';
+  h+='<div class="badges">'+guardBadge(e.guards)+(e.missable?'<span class="bdg miss">&#9888; MISSABLE</span>':'')+(found?'<span class="bdg done">&#10003; LOOTED</span>':'')+'</div>';
+  return h+'</div></div>';
+}
+function renderLoot(){
+  var h=topbar('HIDDEN <em>LOOT</em>')+searchbar('Search loot, weapons, places...');
+  h+='<div class="filtrow"><button class="fchip'+(state.lootFilter==='all'?' on':'')+'" onclick="state.lootFilter=\'all\';render()">All</button><button class="fchip'+(state.lootFilter==='legendary'?' on':'')+'" onclick="state.lootFilter=\'legendary\';render()">&#11088; Legendary</button><button class="fchip'+(state.lootFilter==='chapter1'?' on':'')+'" onclick="state.lootFilter=\'chapter1\';render()">Chapter 1</button><button class="fchip'+(state.lootFilter==='todo'?' on':'')+'" onclick="state.lootFilter=\'todo\';render()">Not looted</button></div>';
+  h+='<div class="list" id="listwrap"></div>';
+  $('app').innerHTML=h; renderList();
+}
+function openLoot(id){ state.detail={type:'loot',id:id}; state.screen='loot'; state.detailTab='info'; window.scrollTo(0,0); render(); }
+function lootDetail(e){
+  var found=!!store.found['l'+e.id], li=locImgs(e), mi=mapImgs(e);
+  var h=topbar('HIDDEN <em>LOOT</em>');
+  h+='<div class="detail">';
+  if(state.detailTab==='find'){
+    h+='<div class="tabs"><button class="tab" onclick="state.detailTab=\'info\';render()">LOOT INFO</button><button class="tab on">&#128205; FIND IT</button></div>';
+    h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
+    if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
+    else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
+    else h+='<p>No map screenshot was available from the guides for this spot yet — the written directions below are the verified route.</p>';
+    h+='<p>'+esc(e.map_description||'')+'</p></div>';
+    h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+  } else {
+    if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+    h+='<div class="dsec"><div class="nm" style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div class="ar" style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+' &middot; '+esc(e.island_region||'')+'</div></div>';
+    h+='<div class="tabs"><button class="tab on">LOOT INFO</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
+    h+='<div class="dsec"><h3>OBTAINABLE LOOT</h3>';
+    e.loot.forEach(function(l){
+      h+='<div class="lootrow"><div><div class="ln">'+glowLoot(l)+'</div><div class="ld">'+esc(l.type||'')+(l.detail?' — '+esc(l.detail):'')+'</div></div></div>';
+    });
+    h+='</div>';
+    if(e.cash_estimate) h+='<div class="dsec"><h3>CASH &amp; SELLABLES</h3><p><span class="r-cash">'+esc(e.cash_estimate)+'</span></p></div>';
+    if(e.guards) h+='<div class="dsec"><h3>RESISTANCE</h3><p>'+esc(e.guards.description||'')+'</p></div>';
+    h+='<div class="dsec"><h3>DETAILS</h3><p class="kv">Available: <b>'+esc(e.chapter_available||'Free roam')+'</b><br>Respawns: <b>'+(e.respawns?'Yes — can be re-looted':'No / one-time')+'</b>'+(e.confidence?'<br>Confidence: <b>'+esc(e.confidence)+'</b>':'')+'</p></div>';
+    if(e.missable) h+='<div class="warn">&#9888; <b>Missable:</b> grab this when you are here — it cannot be collected later.</div>';
+    if(li.length>1) h+='<div class="dsec"><h3>LOCATION PHOTOS</h3>'+li.map(function(u){return '<img class="mapimg" style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+    h+=srcsHtml(e.sources);
+  }
+  h+='<button class="bigbtn'+(found?' found':'')+'" onclick="toggleFound(\'l\',\''+e.id+'\')">'+(found?'&#10003; LOOTED':'MARK AS LOOTED')+'</button>';
+  return h+'</div>';
+}
+
+/* ---------- EGGS ---------- */
+function eggMatches(e){
+  if(state.query){ var q=state.query.toLowerCase(), hay=(e.name+' '+e.area+' '+e.category).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+  return true;
+}
+function eggCard(e){
+  var im=allImgs(e), found=!!store.found['e'+e.id];
+  var h='<div class="card" onclick="openEgg(\''+e.id+'\')">';
+  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#129370;</div>';
+  h+='<div class="cb"><div class="nm">'+esc(e.name)+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
+  h+='<div class="lootline" style="color:var(--dim)">'+esc(String(e.what_it_is||'').slice(0,110))+'...</div>';
+  h+='<div class="badges"><span class="bdg">'+esc(e.category)+'</span>'+(e.best_time?'<span class="bdg">&#128336; '+esc(e.best_time)+'</span>':'')+(found?'<span class="bdg done">&#10003; SEEN</span>':'')+'</div>';
+  return h+'</div></div>';
+}
+function renderEggs(){
+  var h=topbar('EASTER <em>EGGS</em>')+searchbar('Search easter eggs...');
+  h+='<div class="list" id="listwrap"></div>';
+  $('app').innerHTML=h; renderList();
+}
+function openEgg(id){ state.detail={type:'egg',id:id}; state.screen='eggs'; state.detailTab='info'; window.scrollTo(0,0); render(); }
+function eggDetail(e){
+  var found=!!store.found['e'+e.id], li=locImgs(e), mi=mapImgs(e);
+  var h=topbar('EASTER <em>EGGS</em>')+'<div class="detail">';
+  if(state.detailTab==='find'){
+    h+='<div class="tabs"><button class="tab" onclick="state.detailTab=\'info\';render()">ABOUT</button><button class="tab on">&#128205; FIND IT</button></div>';
+    h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
+    if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
+    else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
+    else h+='<p>No map screenshot was available from the guides for this one yet — follow the written directions below.</p>';
+    h+='<p>'+esc(e.map_description||'')+'</p></div>';
+    h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+  } else {
+    if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+    h+='<div class="dsec"><div style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+'</div></div>';
+    h+='<div class="tabs"><button class="tab on">ABOUT</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
+    h+='<div class="dsec"><h3>WHAT IT IS</h3><p>'+esc(e.what_it_is)+'</p></div>';
+    if(e.what_you_get) h+='<div class="dsec"><h3>WHAT YOU GET</h3><p>'+esc(e.what_you_get)+'</p></div>';
+    if(e.best_time) h+='<div class="note">&#128336; Best time: '+esc(e.best_time)+'</div>';
+    if(e.confidence) h+='<div class="dsec"><h3>CONFIDENCE</h3><p>'+esc(e.confidence)+'</p></div>';
+    if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+    h+=srcsHtml(e.sources);
+  }
+  h+='<button class="bigbtn'+(found?' found':'')+'" onclick="toggleFound(\'e\',\''+e.id+'\')">'+(found?'&#10003; SEEN IT':'MARK AS SEEN')+'</button>';
+  return h+'</div>';
+}
+
+/* ---------- STORY ---------- */
+function renderStory(){
+  var h=topbar('STORY <em>PROGRESSION</em>')+searchbar('Search missions...');
+  h+='<div id="listwrap"></div>';
+  h+='<div class="foot">Mission order &amp; names agreed across Dexerto, GameRant, KeenGamer, Space4Games, Radio Times &amp; PowerPyx (91 mandatory main missions). Rewards are only shown where a guide actually reports them.</div>';
+  $('app').innerHTML=h; renderList();
+}
+function storyHtml(){
+  var h='';
+  DATA.chapters.forEach(function(ch){
+    var list=DATA.missions.filter(function(m){return m.chapter===ch.chapter;});
+    var done=list.filter(function(m){return store.done['m'+m.overall_number];}).length;
+    var open = state.openChap===ch.chapter || !!state.query;
+    h+='<div class="chap"><button class="chaphead" onclick="state.openChap='+(open&&!state.query?0:ch.chapter)+';render()"><span class="ct">CH '+ch.chapter+' — '+esc(ch.title.toUpperCase())+'</span><span class="cn">'+done+'/'+list.length+'</span><span class="arr">'+(open?'&#9660;':'&#9654;')+'</span></button>';
+    if(open){
+      list.forEach(function(m){
+        if(state.query && m.name.toLowerCase().indexOf(state.query.toLowerCase())<0) return;
+        var isdone=!!store.done['m'+m.overall_number], nx=nextMission(), isnext=nx&&nx.overall_number===m.overall_number;
+        h+='<div class="mrow'+(isdone?' isdone':'')+(isnext?' next':'')+'" onclick="openMission('+m.overall_number+')"><span class="no">'+m.number_in_chapter+'.</span><span class="mn">'+esc(m.name)+(isnext?' &#9664; UP NEXT':'')+'</span>'+(m.missable_warning?'<span style="color:var(--red);font-size:11px">&#9888;</span>':'')+'<span class="chk" onclick="event.stopPropagation();toggleMission('+m.overall_number+')">'+(isdone?'&#10003;':'')+'</span></div>';
+      });
+    }
+    h+='</div>';
+  });
+  return h;
+}
+function openMission(n){ var m=DATA.missions.filter(function(x){return x.overall_number===n;})[0]; state.detail={type:'mission',id:n}; state.screen='story'; window.scrollTo(0,0); render(); }
+function toggleMission(n){ var k='m'+n; store.done[k]=!store.done[k]; if(!store.done[k]) delete store.done[k]; save(); render(); }
+function toggleFound(kind,id){ var k=kind+id; store.found[k]=!store.found[k]; if(!store.found[k]) delete store.found[k]; save(); render(); }
+function missionDetail(m){
+  var isdone=!!store.done['m'+m.overall_number];
+  var h=topbar('STORY <em>PROGRESSION</em>')+'<div class="detail">';
+  h+='<div class="dsec"><div style="font-size:15px;font-weight:800">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--teal)">Chapter '+m.chapter+' — '+esc(m.chapter_title)+' &middot; Mission '+m.number_in_chapter+' of chapter &middot; #'+m.overall_number+' overall</div></div>';
+  h+='<div class="dsec"><p class="kv">'+(m.playable_character?'Play as: <b>'+esc(m.playable_character)+'</b><br>':'')+(m.giver?'Given by: <b>'+esc(m.giver)+'</b>':'')+'</p></div>';
+  h+='<div class="dsec"><h3>OVERVIEW</h3><p>'+esc(m.overview)+'</p>'+(m.overview_verified===false?'<p style="color:#ffd88a;font-size:10.5px;margin-top:4px">Overview is based on mission objectives; full walkthrough detail for this one is still thin across guides.</p>':'')+'</div>';
+  if(m.tips&&m.tips.length) h+='<div class="dsec"><h3>TIPS</h3><ul>'+m.tips.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul></div>';
+  h+='<div class="dsec"><h3>COMPLETION REWARD</h3>';
+  if(m.reward) h+='<div class="reward-big">'+esc(m.reward)+'</div>';
+  else h+='<div class="reward-none">No cash reward is reliably reported for this mission by the guides.</div>';
+  if(m.reward_notes) h+='<p style="margin-top:4px">'+esc(m.reward_notes)+'</p>';
+  h+='</div>';
+  if(m.missable_warning) h+='<div class="warn">&#9888; '+esc(m.missable_warning)+'</div>';
+  h+=srcsHtml(m.sources);
+  h+='<button class="bigbtn'+(isdone?' found':'')+'" onclick="toggleMission('+m.overall_number+')">'+(isdone?'&#10003; COMPLETED':'MARK AS COMPLETED')+'</button>';
+  var prev=DATA.missions.filter(function(x){return x.overall_number===m.overall_number-1;})[0];
+  var next=DATA.missions.filter(function(x){return x.overall_number===m.overall_number+1;})[0];
+  h+='<div class="tabs" style="padding-bottom:4px">'+(prev?'<button class="tab" onclick="openMission('+prev.overall_number+')">&#9664; '+esc(prev.name.slice(0,14))+'</button>':'<span style="flex:1"></span>')+(next?'<button class="tab" onclick="openMission('+next.overall_number+')">'+esc(next.name.slice(0,14))+' &#9654;</button>':'<span style="flex:1"></span>')+'</div>';
+  return h+'</div>';
+}
+
+/* ---------- render dispatch ---------- */
+function renderList(){
+  var w=$('listwrap'); if(!w) return;
+  if(state.screen==='loot'){ var list=DATA.loot.filter(lootMatches); w.innerHTML=list.length?list.map(lootCard).join(''):'<div class="empty">No loot matches.</div>'; }
+  else if(state.screen==='eggs'){ var list2=DATA.eggs.filter(eggMatches); w.innerHTML=list2.length?list2.map(eggCard).join(''):'<div class="empty">No easter eggs match.</div>'; }
+  else if(state.screen==='story'){ w.innerHTML=storyHtml(); }
+}
+function render(){
+  if(!DATA) return;
+  if(state.detail){
+    if(state.detail.type==='loot'){ var e=DATA.loot.filter(function(x){return x.id===state.detail.id;})[0]; if(e){$('app').innerHTML=lootDetail(e); return;} }
+    if(state.detail.type==='egg'){ var g=DATA.eggs.filter(function(x){return x.id===state.detail.id;})[0]; if(g){$('app').innerHTML=eggDetail(g); return;} }
+    if(state.detail.type==='mission'){ var m=DATA.missions.filter(function(x){return x.overall_number===state.detail.id;})[0]; if(m){$('app').innerHTML=missionDetail(m); return;} }
+    state.detail=null;
+  }
+  if(state.screen==='home') renderHome();
+  else if(state.screen==='loot') renderLoot();
+  else if(state.screen==='eggs') renderEggs();
+  else if(state.screen==='story') renderStory();
+}
+</script>
+</body>
+</html>
