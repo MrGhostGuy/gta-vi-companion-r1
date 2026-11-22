@@ -336,11 +336,12 @@ function eggDetail(e){
 
 /* ---------- VEHICLES ---------- */
 function regState(v){
-  var s=v.security||{};
-  if(s.can_register===true) return {cls:'ok',label:'&#10003; CAN BE REGISTERED — KEEP IT'};
-  if(s.can_register===false) return {cls:'bad',label:'&#9888; DRIVE-ONLY — CANNOT REGISTER'};
-  return {cls:'unk',label:'? REGISTRATION NOT REPORTED YET'};
+  var s=v.security||{}, air=v.category==='aircraft';
+  if(s.can_register===true) return {cls:'ok',label:air?'&#9992;&#10003; YOURS TO KEEP':'&#10003; CAN BE REGISTERED — KEEP IT'};
+  if(s.can_register===false) return {cls:'bad',label:air?'&#9992;&#9888; JOYRIDE ONLY — CANNOT BE KEPT':'&#9888; DRIVE-ONLY — CANNOT REGISTER'};
+  return {cls:'unk',label:air?'? KEEP STATUS NOT REPORTED YET':'? REGISTRATION NOT REPORTED YET'};
 }
+function setVFilter(f){ state.vfilter=f; renderVehicles(); }
 function secBadges(v){
   var s=v.security||{}, h='';
   if(s.key_cloner_needed===true) h+='<span class="bdg g-high">&#128273; KEY CLONER NEEDED</span>';
@@ -351,21 +352,24 @@ function secBadges(v){
   return h;
 }
 function vehicleMatches(v){
+  if(state.vfilter && state.vfilter!=='all' && (v.category||'car')!==state.vfilter) return false;
   if(state.query){ var q=state.query.toLowerCase(), hay=(v.name+' '+v.area+' '+(v.real_world_equivalent||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
   return true;
 }
 function vehicleCard(v){
-  var im=allImgs(v), got=!!store.found['v'+v.id], rs=regState(v);
+  var im=allImgs(v), got=!!store.found['v'+v.id], rs=regState(v), air=v.category==='aircraft';
   var h='<div class="card" onclick="openVehicle(\''+v.id+'\')">';
-  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128663;</div>';
+  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">'+(air?'&#9992;':'&#128663;')+'</div>';
   h+='<div class="cb"><div class="nm">'+esc(v.name)+'</div><div class="ar">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>';
   if(v.real_world_equivalent) h+='<div class="lootline" style="color:var(--dim)">Real-world twin: '+esc(v.real_world_equivalent)+'</div>';
-  h+='<div class="badges"><span class="bdg '+(rs.cls==='ok'?'done':rs.cls==='bad'?'g-high':'g-med')+'">'+(rs.cls==='ok'?'REGISTERABLE':rs.cls==='bad'?'DRIVE-ONLY':'REGISTER: UNKNOWN')+'</span>'+secBadges(v)+(got?'<span class="bdg done">&#10003; GOT IT</span>':'')+'</div>';
+  h+='<div class="badges"><span class="bdg '+(rs.cls==='ok'?'done':rs.cls==='bad'?'g-high':'g-med')+'">'+(rs.cls==='ok'?(air?'KEEPABLE':'REGISTERABLE'):rs.cls==='bad'?(air?'JOYRIDE ONLY':'DRIVE-ONLY'):(air?'KEEP: UNKNOWN':'REGISTER: UNKNOWN'))+'</span>'+secBadges(v)+(got?'<span class="bdg done">&#10003; '+(air?'FLOWN IT':'GOT IT')+'</span>':'')+'</div>';
   return h+'</div></div>';
 }
 function renderVehicles(){
-  var h=topbar('SPECIAL <em>VEHICLES</em>')+searchbar('Search cars...');
-  h+='<div class="note" style="margin:8px 8px 0">&#128663; Security decides the prize: a car with <b>no tracker and no key needed</b> can be registered and kept (registration unlocks in Chapter 2 at Moses\' garage). A car with an <b>advanced tracker</b> or that <b>needs a key cloner</b> may only be a joyride or a sell — check each car\'s panel before you plan around keeping it.</div>';
+  var all=DATA.vehicles||[], nc=all.filter(function(x){return (x.category||'car')==='car';}).length, na=all.length-nc, f=state.vfilter||'all';
+  var h=topbar('SPECIAL <em>VEHICLES</em>')+searchbar('Search vehicles...');
+  h+='<div class="chips"><button class="chip'+(f==='all'?' on':'')+'" onclick="setVFilter(\'all\')">All ('+all.length+')</button><button class="chip'+(f==='car'?' on':'')+'" onclick="setVFilter(\'car\')">&#128663; Cars ('+nc+')</button><button class="chip'+(f==='aircraft'?' on':'')+'" onclick="setVFilter(\'aircraft\')">&#9992; Aircraft ('+na+')</button></div>';
+  h+='<div class="note" style="margin:8px 8px 0">&#128663; <b>Cars:</b> security decides the prize — no tracker + no key needed = register and keep it (Moses, Chapter 2); advanced tracker or key cloner = joyride or sell. &#9992; <b>Aircraft:</b> guides are unanimous that found planes and helicopters <b>cannot be kept</b> — no hangar storage, no aircraft registration. The one exception is Kyle\'s Mallard, a quest plane. Everything else is a joyride.</div>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -381,7 +385,8 @@ function vehicleDetail(v){
   h+=secRow('Alarm', s.alarm==='alarmed'?'Alarmed':s.alarm==='none'?'None':'Not reported', s.alarm==='alarmed'?'bad':s.alarm==='none'?'ok':'unk');
   h+=secRow('Tracker', s.tracker==='advanced'?'Advanced tracker':s.tracker==='none'?'None':'Not reported', s.tracker==='advanced'?'bad':s.tracker==='none'?'ok':'unk');
   h+=secRow('Key cloner needed', s.key_cloner_needed===true?'YES':s.key_cloner_needed===false?'No':'Not reported', s.key_cloner_needed===true?'bad':s.key_cloner_needed===false?'ok':'unk');
-  h+=secRow('Can register', s.can_register===true?'Yes':s.can_register===false?'No':'Not reported', s.can_register===true?'ok':s.can_register===false?'bad':'unk');
+  h+=secRow(v.category==='aircraft'?'Can keep':'Can register', s.can_register===true?'Yes':s.can_register===false?'No':'Not reported', s.can_register===true?'ok':s.can_register===false?'bad':'unk');
+  if(s.keep_method) h+=secRow('How it is kept', esc(s.keep_method),'');
   if(s.register_cost) h+=secRow('Register cost', esc(s.register_cost),'');
   if(s.sell_value) h+=secRow('Sell value', esc(s.sell_value),'ok');
   h+='</div>'+(s.notes?'<p style="margin-top:5px">'+esc(s.notes)+'</p>':'')+'</div>';
@@ -389,7 +394,7 @@ function vehicleDetail(v){
   h+='<div class="dsec"><h3>DETAILS</h3><p class="kv">Available: <b>'+esc(v.chapter_available||'Free roam')+'</b>'+(v.is_mission_locked?'<br><b style="color:#ff9aa4">Mission-locked</b>':'')+(v.confidence?'<br>Confidence: <b>'+esc(v.confidence)+'</b>':'')+'</p></div>';
   if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
   h+=srcsHtml(v.sources);
-  h+='<button class="bigbtn'+(got?' found':'')+'" onclick="toggleFound(\'v\',\''+v.id+'\')">'+(got?'&#10003; IN MY GARAGE':'MARK AS GOT IT')+'</button>';
+  h+='<button class="bigbtn'+(got?' found':'')+'" onclick="toggleFound(\'v\',\''+v.id+'\')">'+(v.category==='aircraft'?(got?'&#10003; FLOWN IT':'MARK AS FLOWN'):(got?'&#10003; IN MY GARAGE':'MARK AS GOT IT'))+'</button>';
   return h+'</div>';
 }
 
