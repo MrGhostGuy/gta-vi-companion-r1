@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=240, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>GTA VI Companion</title>
+<meta name="theme-color" content="#FF2975">
+<meta name="description" content="Unofficial GTA VI companion for Rabbit R1: hidden loot, easter eggs, special vehicles, all 91 story missions and a dynamic Leonida map.">
+<link rel="icon" href="icon.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -12,7 +15,7 @@
   --txt:#f5eefc; --dim:#b9a8d9; --red:#ff4d5e;
 }
 html,body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,Arial,sans-serif;width:240px;margin:0 auto}
-body{min-height:282px;background:linear-gradient(180deg,#2b0a4a 0%,#0d0518 30%)}
+body{touch-action:manipulation;min-height:282px;background:linear-gradient(180deg,#2b0a4a 0%,#0d0518 30%)}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 img{display:block;max-width:100%}
 
@@ -139,6 +142,7 @@ img{display:block;max-width:100%}
 .tabs{display:flex;gap:6px;padding:10px 10px 0}
 .tab{flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-family:Impact,'Arial Black',sans-serif;font-size:12px;letter-spacing:1px;background:#170a2c;border:1px solid #4a2680;color:var(--dim)}
 .tab.on{color:#0d0518;background:linear-gradient(90deg,var(--sun),var(--pink));border-color:transparent}
+.mapimg{max-width:100%;border-radius:10px;border:1px solid #4a2680;margin-bottom:6px}
 .findit .mapimg{width:100%;border-radius:10px;border:1px solid #4a2680;margin-bottom:6px}
 .bigbtn{display:block;width:calc(100% - 20px);margin:12px 10px 0;padding:11px;border-radius:11px;text-align:center;
   font-family:Impact,'Arial Black',sans-serif;font-size:14px;letter-spacing:1.2px;color:#0d0518;background:linear-gradient(90deg,var(--teal),#5df2ff)}
@@ -167,7 +171,7 @@ img{display:block;max-width:100%}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><div style="padding:70px 18px;text-align:center"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:30px;letter-spacing:2px;background:linear-gradient(180deg,#ffd34d,#ff2975,#7b2ff7);-webkit-background-clip:text;background-clip:text;color:transparent">VI</div><div style="font-size:12px;color:#bdb3d9;letter-spacing:3px;margin-top:6px">LOADING COMPANION…</div></div></div>
 <script>
 "use strict";
 var DATA=null, LS='gtavi-companion-v1';
@@ -220,12 +224,12 @@ function renderHome(){
   if(nx) h+='<div class="nextup">&#9654; <b>Up next:</b> Ch.'+nx.chapter+' &middot; '+esc(nx.name)+'</div>';
   h+='<div class="menu">';
   h+='<button class="mbtn loot" onclick="go(\'loot\')"><span class="ic">&#128176;</span><span><div class="t">HIDDEN LOOT</div><div class="d">Illegal ops, stash houses, unique weapons</div></span><span class="n">'+c.lf+'/'+c.l+'</span></button>';
-  h+='<button class="mbtn mapb" onclick="go(\'map\')"><span class="ic">&#128506;</span><span><div class="t">LEONIDA MAP</div><div class="d">Full dynamic map: every loot pin, pan &amp; zoom, your own markers</div></span><span class="n">37 PINS</span></button>';
+  h+='<button class="mbtn mapb" onclick="go(\'map\')"><span class="ic">&#128506;</span><span><div class="t">LEONIDA MAP</div><div class="d">Full dynamic map: every loot pin, pan &amp; zoom, your own markers</div></span><span class="n">'+pinTotal()+' PINS</span></button>';
   h+='<button class="mbtn eggs" onclick="go(\'eggs\')"><span class="ic">&#129370;</span><span><div class="t">EASTER EGGS</div><div class="d">Secrets, sightings &amp; hidden scenes</div></span><span class="n">'+c.ef+'/'+c.e+'</span></button>';
   h+='<button class="mbtn cars" onclick="go(\'vehicles\')"><span class="ic">&#128663;</span><span><div class="t">SPECIAL VEHICLES</div><div class="d">Hidden cars &amp; their security: register or joyride?</div></span><span class="n">'+c.vf+'/'+c.v+'</span></button>';
   h+='<button class="mbtn story" onclick="go(\'story\')"><span class="ic">&#127902;</span><span><div class="t">STORY PROGRESSION</div><div class="d">Every main mission, in order, by chapter</div></span><span class="n">'+c.md+'/'+c.m+'</span></button>';
   h+='<button class="bigbtn" style="background:#241040" onclick="toggleSnd()">'+(store.snd===false?'&#128263; MENU SOUNDS: OFF':'&#128266; MENU SOUNDS: ON')+'</button>';
-  h+='</div><div class="foot">Unofficial fan companion. Loot &amp; mission data cross-checked across multiple guides; anything not verified is labelled in its entry.<br>New finds are added by data update — no reinstall needed.</div>';
+  h+='</div><div class="foot">Unofficial fan companion. Loot &amp; mission data cross-checked across multiple guides; anything not verified is labelled in its entry.<br>New finds are added by data update — no reinstall needed.<br>Data updated '+(DATA.updated||'')+' &middot; '+(DATA.loot.length+DATA.eggs.length+(DATA.vehicles||[]).length+DATA.missions.length)+' tracked entries &middot; '+pinTotal()+' map pins</div>';
   $('app').innerHTML=h;
 }
 /* ---------- shared bits ---------- */
@@ -278,7 +282,7 @@ function lootMatches(e){
 function lootCard(e){
   var im=allImgs(e), found=!!store.found['l'+e.id];
   var h='<div class="card" onclick="openLoot(\''+e.id+'\')">';
-  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128176;</div>';
+  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128176;</div>';
   h+='<div class="cb"><div class="nm">'+esc(e.name.replace(/\s*\(.*Operation\)/,''))+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
   h+='<div class="lootline">'+e.loot.slice(0,3).map(glowLoot).join(' &middot; ')+'</div>';
   if(e.cash_estimate) h+='<div class="lootline"><span class="r-cash">'+esc(e.cash_estimate.split('.')[0].split('—')[0].slice(0,90))+'</span></div>';
@@ -308,17 +312,17 @@ function lootDetail(e){
       h+='<p style="margin-top:6px">Drag to pan, + / &minus; to zoom, double-tap zooms in. Pins and area names hold their size at every zoom, and more names fade in as you zoom closer. Tap the <b>&#9776; FILTER</b> button (top-left of the map) to choose what is plotted: gold = loot, green = easter eggs, blue = vehicles, white = POIs, cyan = yours. The <b>&#xff0b;</b> button drops <b>your own cyan marker</b> at the center of the view — saved on this device and shown on every map.</p></div>';
       h+='<div class="dsec"><h3>WHERE EXACTLY</h3><p>'+esc(e.map_description||'')+'</p></div>';
       h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
-      if(mi.length) h+='<div class="dsec"><h3>REFERENCE PHOTO (IN-GAME MAP)</h3>'+mi.map(function(u){return '<img class="mapimg" src="'+esc(u)+'" alt="map">';}).join('')+'</div>';
+      if(mi.length) h+='<div class="dsec"><h3>REFERENCE PHOTO (IN-GAME MAP)</h3>'+mi.map(function(u){return '<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'" alt="map">';}).join('')+'</div>';
     } else {
       h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
-      if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
-      else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
+      if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'" alt="map">';});
+      else if(li.length) li.forEach(function(u){h+='<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'" alt="">';});
       else h+='<p>No map screenshot was available from the guides for this spot yet — the written directions below are the verified route.</p>';
       h+='<p>'+esc(e.map_description||'')+'</p></div>';
       h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
     }
   } else {
-    if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+    if(li.length) h+='<img class="photo" onerror="this.style.display=\'none\'" src="'+esc(li[0])+'" alt="">';
     h+='<div class="dsec"><div class="nm" style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div class="ar" style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+' &middot; '+esc(e.island_region||'')+'</div></div>';
     h+='<div class="tabs"><button class="tab on">LOOT INFO</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
     h+='<div class="dsec"><h3>OBTAINABLE LOOT</h3>';
@@ -330,7 +334,7 @@ function lootDetail(e){
     if(e.guards) h+='<div class="dsec"><h3>RESISTANCE</h3><p>'+esc(e.guards.description||'')+'</p></div>';
     h+='<div class="dsec"><h3>DETAILS</h3><p class="kv">Available: <b>'+esc(e.chapter_available||'Free roam')+'</b><br>Respawns: <b>'+(e.respawns?'Yes — can be re-looted':'No / one-time')+'</b>'+(e.confidence?'<br>Confidence: <b>'+esc(e.confidence)+'</b>':'')+'</p></div>';
     if(e.missable) h+='<div class="warn">&#9888; <b>Missable:</b> grab this when you are here — it cannot be collected later.</div>';
-    if(li.length>1) h+='<div class="dsec"><h3>LOCATION PHOTOS</h3>'+li.map(function(u){return '<img class="mapimg" style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+    if(li.length>1) h+='<div class="dsec"><h3>LOCATION PHOTOS</h3>'+li.map(function(u){return '<img class="mapimg" onerror="this.style.display=\'none\'" style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
     h+=srcsHtml(e.sources);
   }
   h+='<button class="bigbtn'+(found?' found':'')+'" onclick="toggleFound(\'l\',\''+e.id+'\')">'+(found?'&#10003; LOOTED':'MARK AS LOOTED')+'</button>';
@@ -345,7 +349,7 @@ function eggMatches(e){
 function eggCard(e){
   var im=allImgs(e), found=!!store.found['e'+e.id];
   var h='<div class="card" onclick="openEgg(\''+e.id+'\')">';
-  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#129370;</div>';
+  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#129370;</div>';
   h+='<div class="cb"><div class="nm">'+esc(e.name)+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
   h+='<div class="lootline" style="color:var(--dim)">'+esc(String(e.what_it_is||'').slice(0,110))+'...</div>';
   h+='<div class="badges"><span class="bdg">'+esc(e.category)+'</span>'+(e.best_time?'<span class="bdg">&#128336; '+esc(e.best_time)+'</span>':'')+(found?'<span class="bdg done">&#10003; SEEN</span>':'')+'</div>';
@@ -364,20 +368,21 @@ function eggDetail(e){
   if(state.detailTab==='find'){
     h+='<div class="tabs"><button class="tab" onclick="state.detailTab=\'info\';render()">ABOUT</button><button class="tab on">&#128205; FIND IT</button></div>';
     h+='<div class="dsec findit"><h3>MAP LOCATION</h3>';
-    if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="map">';});
-    else if(li.length) li.forEach(function(u){h+='<img class="mapimg" src="'+esc(u)+'" alt="">';});
+    if(mi.length) mi.forEach(function(u){h+='<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'" alt="map">';});
+    else if(li.length) li.forEach(function(u){h+='<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'" alt="">';});
     else h+='<p>No map screenshot was available from the guides for this one yet — follow the written directions below.</p>';
     h+='<p>'+esc(e.map_description||'')+'</p></div>';
     h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
+    if(e.coords) h+='<button class="bigbtn" onclick="openSpotMap(\'egg\',\''+e.id+'\')">&#128506; VIEW ON DYNAMIC MAP</button>';
   } else {
-    if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+    if(li.length) h+='<img class="photo" onerror="this.style.display=\'none\'" src="'+esc(li[0])+'" alt="">';
     h+='<div class="dsec"><div style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+'</div></div>';
     h+='<div class="tabs"><button class="tab on">ABOUT</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
     h+='<div class="dsec"><h3>WHAT IT IS</h3><p>'+esc(e.what_it_is)+'</p></div>';
     if(e.what_you_get) h+='<div class="dsec"><h3>WHAT YOU GET</h3><p>'+esc(e.what_you_get)+'</p></div>';
     if(e.best_time) h+='<div class="note">&#128336; Best time: '+esc(e.best_time)+'</div>';
     if(e.confidence) h+='<div class="dsec"><h3>CONFIDENCE</h3><p>'+esc(e.confidence)+'</p></div>';
-    if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+    if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'">';}).join('')+'</div>';
     h+=srcsHtml(e.sources);
   }
   h+='<button class="bigbtn'+(found?' found':'')+'" onclick="toggleFound(\'e\',\''+e.id+'\')">'+(found?'&#10003; SEEN IT':'MARK AS SEEN')+'</button>';
@@ -409,7 +414,7 @@ function vehicleMatches(v){
 function vehicleCard(v){
   var im=allImgs(v), got=!!store.found['v'+v.id], rs=regState(v), air=v.category==='aircraft';
   var h='<div class="card" onclick="openVehicle(\''+v.id+'\')">';
-  h+= im.length? '<img class="thumb" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">'+(air?'&#9992;':'&#128663;')+'</div>';
+  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">'+(air?'&#9992;':'&#128663;')+'</div>';
   h+='<div class="cb"><div class="nm">'+esc(v.name)+'</div><div class="ar">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>';
   if(v.real_world_equivalent) h+='<div class="lootline" style="color:var(--dim)">Real-world twin: '+esc(v.real_world_equivalent)+'</div>';
   h+='<div class="badges"><span class="bdg '+(rs.cls==='ok'?'done':rs.cls==='bad'?'g-high':'g-med')+'">'+(rs.cls==='ok'?(air?'KEEPABLE':'REGISTERABLE'):rs.cls==='bad'?(air?'JOYRIDE ONLY':'DRIVE-ONLY'):(air?'KEEP: UNKNOWN':'REGISTER: UNKNOWN'))+'</span>'+secBadges(v)+(got?'<span class="bdg done">&#10003; '+(air?'FLOWN IT':'GOT IT')+'</span>':'')+'</div>';
@@ -428,7 +433,7 @@ function secRow(k,val,cls){ return '<div class="srow"><span class="sk">'+k+'</sp
 function vehicleDetail(v){
   var got=!!store.found['v'+v.id], li=locImgs(v), s=v.security||{}, rs=regState(v);
   var h=topbar('SPECIAL <em>VEHICLES</em>')+'<div class="detail">';
-  if(li.length) h+='<img class="photo" src="'+esc(li[0])+'" alt="">';
+  if(li.length) h+='<img class="photo" onerror="this.style.display=\'none\'" src="'+esc(li[0])+'" alt="">';
   h+='<div class="dsec"><div style="font-size:15px;font-weight:800">'+esc(v.name)+'</div><div style="font-size:11px;color:var(--teal)">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>'+(v.real_world_equivalent?'<div style="font-size:11px;color:var(--dim);margin-top:2px">Real-world twin: '+esc(v.real_world_equivalent)+'</div>':'')+'</div>';
   h+='<div class="regbanner '+rs.cls+'">'+rs.label+'</div>';
   h+='<div class="dsec"><h3>&#128272; SECURITY &amp; KEEPING IT</h3><div class="secbox">';
@@ -442,7 +447,7 @@ function vehicleDetail(v){
   h+='</div>'+(s.notes?'<p style="margin-top:5px">'+esc(s.notes)+'</p>':'')+'</div>';
   h+='<div class="dsec"><h3>HOW TO GET IT</h3>'+stepsHtml(v.how_to_get)+'</div>';
   h+='<div class="dsec"><h3>DETAILS</h3><p class="kv">Available: <b>'+esc(v.chapter_available||'Free roam')+'</b>'+(v.is_mission_locked?'<br><b style="color:#ff9aa4">Mission-locked</b>':'')+(v.confidence?'<br>Confidence: <b>'+esc(v.confidence)+'</b>':'')+'</p></div>';
-  if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img style="border-radius:10px;border:1px solid #4a2680;margin-bottom:6px" src="'+esc(u)+'">';}).join('')+'</div>';
+  if(li.length>1) h+='<div class="dsec"><h3>PHOTOS</h3>'+li.slice(1).map(function(u){return '<img class="mapimg" onerror="this.style.display=\'none\'" src="'+esc(u)+'">';}).join('')+'</div>';
   h+=srcsHtml(v.sources);
   h+='<button class="bigbtn'+(got?' found':'')+'" onclick="toggleFound(\'v\',\''+v.id+'\')">'+(v.category==='aircraft'?(got?'&#10003; FLOWN IT':'MARK AS FLOWN'):(got?'&#10003; IN MY GARAGE':'MARK AS GOT IT'))+'</button>';
   return h+'</div>';
@@ -520,6 +525,7 @@ var LABELS=[
  {n:'HAMLET',x:398,y:616,t:2},{n:'WATSON BAY',x:406,y:692,t:2},{n:'LITTLE CUBA',x:690,y:542,t:2},{n:'OCEAN BEACH',x:918,y:542,t:2},{n:'RIALTO ISLANDS',x:812,y:446,t:2},{n:'AMBROSIA',x:552,y:288,t:2},{n:'KEY LENTO',x:352,y:850,t:2},{n:'DOWNTOWN',x:626,y:486,t:2},{n:'WAXMAN ISLAND',x:782,y:506,t:2},{n:'PELICAN VALLEY',x:458,y:854,t:2},{n:'MANIFEST CANYON',x:298,y:230,t:2},{n:'STARFISH ISLAND',x:864,y:510,t:2},{n:'LUMMOX COUNTY',x:745,y:265,t:2},{n:'LEONARD COUNTY',x:662,y:392,t:2},
  {n:'BOBCAT KEY',x:366,y:734,t:3},{n:'WASHINGTON ISLAND',x:900,y:430,t:3},{n:'VESPUCCI ISLAND',x:796,y:496,t:3},{n:'CASANOVA ISLAND',x:854,y:498,t:3},{n:'COTTONMOUTH LAKE',x:402,y:664,t:3},{n:'TORTOISE LAKE',x:545,y:452,t:3},{n:'MILE ZERO',x:302,y:916,t:3},{n:'GOOSE KEY',x:290,y:880,t:3},{n:'FLAMINGO ISLAND',x:706,y:360,t:3},{n:'PEACOCK ESTATES',x:650,y:400,t:3},{n:'LA PERLE',x:718,y:430,t:3},{n:'BLUEGRASS',x:404,y:584,t:3},{n:'CAPRI',x:490,y:450,t:3},{n:'SOUTH POINT',x:382,y:680,t:3}];
 var mapFilters={loot:true,eggs:false,vehicles:false,pois:false,mine:true};
+function pinTotal(){ return DATA.loot.filter(function(e){return e.coords;}).length+DATA.eggs.filter(function(e){return e.coords;}).length+(DATA.vehicles||[]).filter(function(e){return e.coords;}).length+(DATA.pois||[]).length; }
 function mfPanelHtml(){ function r(k,label,color,n){ return '<button class="mfrow2" onclick="mfToggle(\''+k+'\')"><span class="cbx'+(mapFilters[k]?' on':'')+'">'+(mapFilters[k]?'&#10003;':'')+'</span><span class="dot" style="background:'+color+'"></span>'+label+'<span class="cnt">'+n+'</span></button>'; }
   return r('loot','Hidden Loot','#ffd34d',DATA.loot.filter(function(e){return e.coords;}).length)
   +r('eggs','Easter Eggs','#3ddc84',DATA.eggs.filter(function(e){return e.coords;}).length)
