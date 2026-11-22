@@ -62,8 +62,16 @@ img{display:block;max-width:100%}
 .maplayer.drag{transition:none}
 .mappin.custom{background:#37e0ff;border-color:#0b5a6e}
 .maplayer img{width:240px;height:327px;display:block;pointer-events:none}
-.mappin{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#ffd34d;border:2px solid #7a4d00;box-shadow:0 0 5px rgba(0,0,0,.7);cursor:pointer;z-index:2}
-.mappin.main{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;background:var(--pink);border-color:#fff;z-index:3;animation:pulse 1.4s infinite}
+.mappin{position:absolute;width:var(--ps,11px);height:var(--ps,11px);margin:calc(var(--ps,11px)/-2) 0 0 calc(var(--ps,11px)/-2);border-radius:50%;background:#ffd34d;border:calc(var(--ps,11px)*0.18) solid #7a4d00;box-shadow:0 0 5px rgba(0,0,0,.7);cursor:pointer;z-index:2}
+.mappin.main{width:var(--psm,15px);height:var(--psm,15px);margin:calc(var(--psm,15px)/-2) 0 0 calc(var(--psm,15px)/-2);background:var(--pink);border-color:#fff;z-index:3;animation:pulse 1.4s infinite}
+.mappin.egg{background:#3ddc84;border-color:#0d5c33}.mappin.veh{background:#4da3ff;border-color:#123f7a}.mappin.poi{background:#fff;border-color:#666}
+.maplabel{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;letter-spacing:1.5px;text-shadow:0 1px 3px #000,0 0 7px rgba(0,0,0,.85);pointer-events:none;white-space:nowrap;z-index:1}
+.lbl1{font-size:15px}.lbl2{font-size:10.5px}.lbl3{font-size:8.5px;color:#ffe9a8;letter-spacing:1px}
+.maplayer[data-z="1"] .lbl2,.maplayer[data-z="1"] .lbl3{display:none}
+.maplayer[data-z="2"] .lbl3{display:none}
+.mfrow{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+.mf{display:inline-flex;align-items:center;gap:4px}
+.mf .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,41,117,.55)}70%{box-shadow:0 0 0 13px rgba(255,41,117,0)}100%{box-shadow:0 0 0 0 rgba(255,41,117,0)}}
 .mapctl{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:5px;z-index:5}
 .mapctl button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:rgba(20,8,43,.92);color:var(--txt);font-size:15px;font-weight:800}
@@ -283,10 +291,10 @@ function lootDetail(e){
     h+='<div class="tabs"><button class="tab" onclick="state.detailTab=\'info\';render()">LOOT INFO</button><button class="tab on">&#128205; FIND IT</button></div>';
     if(e.coords){
       PENDMAP={mode:'focus',coords:e.coords,id:e.id};
-      h+='<div class="dsec findit"><h3>&#128506; ON THE MAP — '+esc(e.area)+'</h3>'+mapHtml(e.id);
+      h+='<div class="dsec findit"><h3>&#128506; ON THE MAP — '+esc(e.area)+'</h3>'+mfHtml()+mapHtml(e.id);
       h+='<div id="mapcard">'+mapCardHtml(e,true)+'</div>';
       if(e.coords.approx) h+='<p style="margin-top:6px">&#9888; This pin was placed from written guide descriptions (no marker source) — treat it as the approximate area and use the directions below for the final approach.</p>';
-      h+='<p style="margin-top:6px">Drag to pan, + / &minus; to zoom, double-tap zooms in. Gold pins are other loot spots — tap one to preview it. The <b>&#xff0b;</b> button drops <b>your own cyan marker</b> at the center of the view — it is saved on this device and shows on every map.</p></div>';
+      h+='<p style="margin-top:6px">Drag to pan, + / &minus; to zoom, double-tap zooms in. Pins stay the same size on screen at every zoom, and region &amp; area names fade in as you zoom closer. Use the filter chips above to choose what is plotted: gold = loot, green = easter eggs, blue = vehicles, white = POIs, cyan = yours. The <b>&#xff0b;</b> button drops <b>your own cyan marker</b> at the center of the view — saved on this device and shown on every map.</p></div>';
       h+='<div class="dsec"><h3>WHERE EXACTLY</h3><p>'+esc(e.map_description||'')+'</p></div>';
       h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
       if(mi.length) h+='<div class="dsec"><h3>REFERENCE PHOTO (IN-GAME MAP)</h3>'+mi.map(function(u){return '<img class="mapimg" src="'+esc(u)+'" alt="map">';}).join('')+'</div>';
@@ -486,14 +494,39 @@ function pinXY(c){ return {x:c.x/1000*LAYW, y:c.y/1000*LAYH}; }
 function clampMap(){ var w=LAYW*mapView.s, h=LAYH*mapView.s;
   mapView.tx = w<=MAPW ? (MAPW-w)/2 : Math.min(0, Math.max(MAPW-w, mapView.tx));
   mapView.ty = h<=MAPH ? (MAPH-h)/2 : Math.min(0, Math.max(MAPH-h, mapView.ty)); }
-function applyMap(){ var l=document.getElementById('maplayer'); if(l) l.style.transform='translate('+mapView.tx+'px,'+mapView.ty+'px) scale('+mapView.s+')'; }
+function applyMap(){ var l=document.getElementById('maplayer'); if(!l) return;
+  l.style.transform='translate('+mapView.tx+'px,'+mapView.ty+'px) scale('+mapView.s+')';
+  l.style.setProperty('--ps',Math.max(2.6,Math.min(15,11/mapView.s)).toFixed(1)+'px');
+  l.style.setProperty('--psm',Math.max(3.4,Math.min(19,15/mapView.s)).toFixed(1)+'px');
+  l.dataset.z = mapView.s<1.6 ? '1' : (mapView.s<3 ? '2' : '3'); }
 function centerMap(c,s){ mapView.s=s; var p=pinXY(c); mapView.tx=MAPW/2-p.x*s; mapView.ty=MAPH/2-p.y*s; clampMap(); applyMap(); }
 function zoomMap(f){ var ns=Math.min(6,Math.max(0.9,mapView.s*f)), k=ns/mapView.s; mapView.tx=MAPW/2-(MAPW/2-mapView.tx)*k; mapView.ty=MAPH/2-(MAPH/2-mapView.ty)*k; mapView.s=ns; clampMap(); applyMap(); }
 function resetMap(){ if(mapFocusId){ var e=DATA.loot.filter(function(x){return x.id===mapFocusId;})[0]; if(e&&e.coords){ centerMap(e.coords,3); return; } } centerMap({x:500,y:500},MAPH/LAYH); }
+var LABELS=[
+ {n:'VICE CITY',x:648,y:438,t:1},{n:'VICE BEACH',x:908,y:460,t:1},{n:'PORT GELLHORN',x:266,y:354,t:1},{n:'LEONIDA KEYS',x:296,y:858,t:1},{n:'MARIANA COUNTY',x:452,y:750,t:1},{n:'KELLY COUNTY',x:352,y:260,t:1},{n:'VICE-DALE COUNTY',x:600,y:200,t:1},{n:'GRASSRIVERS',x:466,y:770,t:1},
+ {n:'HAMLET',x:398,y:616,t:2},{n:'WATSON BAY',x:406,y:692,t:2},{n:'LITTLE CUBA',x:690,y:542,t:2},{n:'OCEAN BEACH',x:918,y:542,t:2},{n:'RIALTO ISLANDS',x:812,y:446,t:2},{n:'AMBROSIA',x:552,y:288,t:2},{n:'KEY LENTO',x:352,y:850,t:2},{n:'DOWNTOWN',x:626,y:486,t:2},{n:'WAXMAN ISLAND',x:782,y:506,t:2},{n:'PELICAN VALLEY',x:458,y:854,t:2},{n:'MANIFEST CANYON',x:298,y:230,t:2},{n:'STARFISH ISLAND',x:864,y:510,t:2},{n:'LUMMOX COUNTY',x:745,y:265,t:2},{n:'LEONARD COUNTY',x:662,y:392,t:2},
+ {n:'BOBCAT KEY',x:366,y:734,t:3},{n:'WASHINGTON ISLAND',x:900,y:430,t:3},{n:'VESPUCCI ISLAND',x:796,y:496,t:3},{n:'CASANOVA ISLAND',x:854,y:498,t:3},{n:'COTTONMOUTH LAKE',x:402,y:664,t:3},{n:'TORTOISE LAKE',x:545,y:452,t:3},{n:'MILE ZERO',x:302,y:916,t:3},{n:'GOOSE KEY',x:290,y:880,t:3},{n:'FLAMINGO ISLAND',x:706,y:360,t:3},{n:'PEACOCK ESTATES',x:650,y:400,t:3},{n:'LA PERLE',x:718,y:430,t:3},{n:'BLUEGRASS',x:404,y:584,t:3},{n:'CAPRI',x:490,y:450,t:3},{n:'SOUTH POINT',x:382,y:680,t:3}];
+var mapFilters={loot:true,eggs:false,vehicles:false,pois:false,mine:true};
+function mfHtml(){ function c(k,label,color,n){ return '<button class="chip mf'+(mapFilters[k]?' on':'')+'" onclick="mfToggle(\''+k+'\')"><span class="dot" style="background:'+color+'"></span>'+label+' '+n+'</button>'; }
+  return '<div class="mfrow">'+c('loot','LOOT','#ffd34d',DATA.loot.filter(function(e){return e.coords;}).length)
+  +c('eggs','EGGS','#3ddc84',DATA.eggs.filter(function(e){return e.coords;}).length)
+  +c('vehicles','VEHICLES','#4da3ff',(DATA.vehicles||[]).filter(function(e){return e.coords;}).length)
+  +c('pois','POIs','#ffffff',(DATA.pois||[]).length)
+  +c('mine','MINE','#37e0ff',(store.cmarks||[]).length)+'</div>'; }
+function mfToggle(k){ mapFilters[k]=!mapFilters[k]; var r=document.querySelector('.mfrow'); if(r) r.outerHTML=mfHtml();
+  var p=document.getElementById('mappins'); if(p) p.innerHTML=pinsHtml(mapFocusId); applyMap(); }
+function pinsHtml(focusId){
+  var h='';
+  function pin(cls,id,coords,main){ var p=pinXY(coords); return '<div class="mappin '+cls+(main?' main':'')+'" style="left:'+p.x+'px;top:'+p.y+'px" onclick="pinTap(event,\''+id+'\')"></div>'; }
+  DATA.loot.forEach(function(e){ if(e.coords && (mapFilters.loot||e.id===focusId)) h+=pin('',e.id,e.coords,e.id===focusId); });
+  if(mapFilters.eggs) DATA.eggs.forEach(function(e){ if(e.coords) h+=pin('egg','e:'+e.id,e.coords,false); });
+  if(mapFilters.vehicles) (DATA.vehicles||[]).forEach(function(e){ if(e.coords) h+=pin('veh','v:'+e.id,e.coords,false); });
+  if(mapFilters.pois) (DATA.pois||[]).forEach(function(e){ if(e.coords) h+=pin('poi','p:'+e.id,e.coords,false); });
+  if(mapFilters.mine) (store.cmarks||[]).forEach(function(m){ h+=pin('custom',m.id,m,false); });
+  return h; }
+function labelsHtml(){ return LABELS.map(function(L){ var p=pinXY(L); return '<div class="maplabel lbl'+L.t+'" style="left:'+p.x+'px;top:'+p.y+'px">'+L.n+'</div>'; }).join(''); }
 function mapHtml(focusId){
-  var pins=DATA.loot.filter(function(e){return e.coords;}).map(function(e){ var p=pinXY(e.coords); return '<div class="mappin'+(e.id===focusId?' main':'')+'" style="left:'+p.x+'px;top:'+p.y+'px" onclick="pinTap(event,\''+e.id+'\')"></div>'; }).join('');
-  pins+=(store.cmarks||[]).map(function(m){ var p=pinXY(m); return '<div class="mappin custom" style="left:'+p.x+'px;top:'+p.y+'px" onclick="pinTap(event,\''+m.id+'\')"></div>'; }).join('');
-  return '<div class="mapwrap" id="mapwrap"><div class="maplayer" id="maplayer"><img src="assets/map-full.jpg" alt="Leonida map">'+pins+'</div><div class="mapctl"><button onclick="zoomMap(1.4)">+</button><button onclick="zoomMap(0.7)">&minus;</button><button onclick="resetMap()">&#10227;</button><button onclick="addCMark()" title="Add my marker at center">&#xff0b;</button></div></div>';
+  return '<div class="mapwrap" id="mapwrap"><div class="maplayer" id="maplayer" data-z="1"><img src="assets/map-full.jpg" alt="Leonida map"><div id="maplabels">'+labelsHtml()+'</div><div id="mappins">'+pinsHtml(focusId)+'</div></div><div class="mapctl"><button onclick="zoomMap(1.4)">+</button><button onclick="zoomMap(0.7)">&minus;</button><button onclick="resetMap()">&#10227;</button><button onclick="addCMark()" title="Add my marker at center">&#xff0b;</button></div></div>';
 }
 function addCMark(){ var lx=(MAPW/2-mapView.tx)/mapView.s, ly=(MAPH/2-mapView.ty)/mapView.s;
   var m={id:'c'+Date.now(), x:Math.round(lx/LAYW*1000), y:Math.round(ly/LAYH*1000), label:'My marker '+((store.cmarks||[]).length+1)};
@@ -509,7 +542,14 @@ function mapCardHtml(e,isFocus){
   else h+='<div style="font-size:10.5px;color:var(--dim);margin-top:4px">This is the spot you are viewing — full directions below.</div>';
   return h+'</div>';
 }
+function setCard(html){ var c=document.getElementById('mapcard'); if(c) c.innerHTML=html; }
+function eggMapCard(e){ return '<div class="mapcard"><div class="mn" style="color:#3ddc84">&#129370; '+esc(e.name)+'</div><div class="ma">'+esc(e.area||'')+'</div><div class="ma">Pin placed from written descriptions — approximate</div><button class="open" onclick="openEgg(\''+e.id+'\')">OPEN EASTER EGG</button></div>'; }
+function vehMapCard(v){ return '<div class="mapcard"><div class="mn" style="color:#4da3ff">&#128663; '+esc(v.name)+'</div><div class="ma">'+esc(v.area||'')+'</div><div class="ma">Pin placed from written descriptions — approximate</div><button class="open" onclick="openVehicle(\''+v.id+'\')">OPEN VEHICLE</button></div>'; }
+function poiMapCard(p){ return '<div class="mapcard"><div class="mn">'+(p.icon||'&#128205;')+' '+esc(p.name)+'</div><div class="ma">'+esc(p.area||'')+'</div>'+(p.note?'<p style="font-size:11.5px;margin-top:3px">'+esc(p.note)+'</p>':'')+'<div class="ma">Pin placed from written descriptions — approximate</div></div>'; }
 function pinTap(ev,id){ ev.stopPropagation(); if(mapDrag&&mapDrag.moved>6) return;
+  if(id.indexOf('e:')===0){ var e2=DATA.eggs.filter(function(x){return x.id===id.slice(2);})[0]; if(!e2) return; mapSel=id; setCard(eggMapCard(e2)); return; }
+  if(id.indexOf('v:')===0){ var v2=(DATA.vehicles||[]).filter(function(x){return x.id===id.slice(2);})[0]; if(!v2) return; mapSel=id; setCard(vehMapCard(v2)); return; }
+  if(id.indexOf('p:')===0){ var p2=(DATA.pois||[]).filter(function(x){return x.id===id.slice(2);})[0]; if(!p2) return; mapSel=id; setCard(poiMapCard(p2)); return; }
   if(id.charAt(0)==='c' && id.length>10){ var m=(store.cmarks||[]).filter(function(x){return x.id===id;})[0]; if(!m) return; mapSel=id; var cc=document.getElementById('mapcard'); if(cc) cc.innerHTML=cmarkCard(m); return; }
   var e=DATA.loot.filter(function(x){return x.id===id;})[0]; if(!e) return;
   if(mapSel===id && id!==mapFocusId){ openLoot(id); return; }
@@ -533,8 +573,8 @@ function maybeInitMap(){ if(!PENDMAP) return; var p=PENDMAP; PENDMAP=null; mapFo
 function renderMapOverview(){
   PENDMAP={mode:'fit'};
   var h=topbar('LEONIDA <em>MAP</em>');
-  h+='<div class="detail"><div class="dsec"><h3>&#128506; ALL HIDDEN LOOT — '+DATA.loot.filter(function(e){return e.coords;}).length+' PINS</h3>'+mapHtml(null);
-  h+='<div id="mapcard"><div class="mapcard"><div class="mn">Tap any gold pin</div><p style="font-size:11.5px;margin-top:3px">Every gold pin is a loot spot. Tap once to preview it, tap again (or OPEN) to jump to its full card with directions. Drag to pan, + / &minus; or double-tap to zoom. The <b>&#xff0b;</b> button drops <b>your own cyan marker</b> at the center of the view — saved on this device, shown on every map, tap it to delete it.</p></div></div>';
+  h+='<div class="detail"><div class="dsec"><h3>&#128506; LEONIDA — DYNAMIC MAP</h3>'+mfHtml()+mapHtml(null);
+  h+='<div id="mapcard"><div class="mapcard"><div class="mn">Tap any pin</div><p style="font-size:11.5px;margin-top:3px">Use the filter chips to choose what is plotted: gold = hidden loot, green = easter eggs, blue = special vehicles, white = POIs (shops &amp; services), cyan = your own markers. Tap a pin to preview it, tap again (or OPEN) to jump to its full card. Pins stay the same size at every zoom, and region &amp; area names appear as you zoom in. Drag to pan, + / &minus; or double-tap to zoom. The <b>&#xff0b;</b> button drops your own cyan marker at the center of the view.</p></div></div>';
   h+='<p style="margin-top:6px;font-size:11px;color:var(--dim)">Map: community base map via gta6map.io. Pins matched from that map\'s own markers; 8 pins placed from written descriptions are marked approximate on their cards.</p></div></div>';
   $('app').innerHTML=h; maybeInitMap();
 }
@@ -585,7 +625,7 @@ function r1Highlight(scroll){ var f=r1Focusables(); document.querySelectorAll('.
 function r1InitFocus(){ r1Idx=0; r1Highlight(false); }
 function r1Move(dir){ if(document.getElementById('mapwrap')){ zoomMap(dir>0?1.3:0.77); sndTick(); return; }
   var f=r1Focusables(); if(!f.length) return; r1Idx=(r1Idx+dir+f.length)%f.length; r1Highlight(true); sndTick(); }
-function r1Select(){ if(document.getElementById('mapwrap')){ if(mapSel && mapSel!==mapFocusId && mapSel.charAt(0)!=='c'){ openLoot(mapSel); } return; }
+function r1Select(){ if(document.getElementById('mapwrap')){ if(mapSel && mapSel!==mapFocusId){ if(mapSel.indexOf('e:')===0) openEgg(mapSel.slice(2)); else if(mapSel.indexOf('v:')===0) openVehicle(mapSel.slice(2)); else if(mapSel.charAt(0)!=='c' && mapSel.indexOf('p:')!==0) openLoot(mapSel); } return; }
   var f=r1Focusables(); if(f[r1Idx]) f[r1Idx].click(); }
 document.addEventListener('keydown',function(ev){
   var k=ev.key||'', code=ev.keyCode||ev.which||0;
