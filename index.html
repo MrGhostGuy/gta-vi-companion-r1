@@ -206,6 +206,7 @@ function renderHome(){
   h+='<button class="mbtn eggs" onclick="go(\'eggs\')"><span class="ic">&#129370;</span><span><div class="t">EASTER EGGS</div><div class="d">Secrets, sightings &amp; hidden scenes</div></span><span class="n">'+c.ef+'/'+c.e+'</span></button>';
   h+='<button class="mbtn cars" onclick="go(\'vehicles\')"><span class="ic">&#128663;</span><span><div class="t">SPECIAL VEHICLES</div><div class="d">Hidden cars &amp; their security: register or joyride?</div></span><span class="n">'+c.vf+'/'+c.v+'</span></button>';
   h+='<button class="mbtn story" onclick="go(\'story\')"><span class="ic">&#127902;</span><span><div class="t">STORY PROGRESSION</div><div class="d">Every main mission, in order, by chapter</div></span><span class="n">'+c.md+'/'+c.m+'</span></button>';
+  h+='<button class="bigbtn" style="background:#241040" onclick="toggleSnd()">'+(store.snd===false?'&#128263; MENU SOUNDS: OFF':'&#128266; MENU SOUNDS: ON')+'</button>';
   h+='</div><div class="foot">Unofficial fan companion. Loot &amp; mission data cross-checked across multiple guides; anything not verified is labelled in its entry.<br>New finds are added by data update — no reinstall needed.</div>';
   $('app').innerHTML=h;
 }
@@ -563,6 +564,18 @@ function render(){
   else if(state.screen==='map') renderMapOverview();
 }
 
+/* ---------- SOUND: classic menu blips, synthesized live (no audio files) ---------- */
+var AC=null;
+function ac(){ if(store.snd===false) return null; try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); return AC; }catch(e){ return null; } }
+function blip(f0,f1,dur,vol){ var c=ac(); if(!c) return; var t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+  o.type='square'; o.frequency.setValueAtTime(f0,t); if(f1&&f1!==f0) o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(vol||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.03); }
+function sndTick(){ blip(640,540,0.045,0.03); }
+function sndSelect(){ blip(500,880,0.095,0.05); }
+function sndBack(){ blip(430,215,0.095,0.045); }
+function toggleSnd(){ store.snd=(store.snd===false); save(); if(store.snd) sndSelect(); render(); }
+
 /* ---------- R1 HARDWARE CONTROLS: scroll wheel = move/scroll, side button = select ---------- */
 var r1Idx=0;
 function r1Focusables(){ return Array.prototype.slice.call(document.querySelectorAll('button, input, [onclick]')).filter(function(el){ return el.offsetParent!==null; }); }
@@ -570,8 +583,8 @@ function r1Highlight(scroll){ var f=r1Focusables(); document.querySelectorAll('.
   if(!f.length) return; if(r1Idx<0) r1Idx=0; if(r1Idx>=f.length) r1Idx=f.length-1;
   var el=f[r1Idx]; el.classList.add('r1focus'); if(scroll!==false && el.scrollIntoView) el.scrollIntoView({block:'nearest'}); }
 function r1InitFocus(){ r1Idx=0; r1Highlight(false); }
-function r1Move(dir){ if(document.getElementById('mapwrap')){ zoomMap(dir>0?1.3:0.77); return; }
-  var f=r1Focusables(); if(!f.length) return; r1Idx=(r1Idx+dir+f.length)%f.length; r1Highlight(true); }
+function r1Move(dir){ if(document.getElementById('mapwrap')){ zoomMap(dir>0?1.3:0.77); sndTick(); return; }
+  var f=r1Focusables(); if(!f.length) return; r1Idx=(r1Idx+dir+f.length)%f.length; r1Highlight(true); sndTick(); }
 function r1Select(){ if(document.getElementById('mapwrap')){ if(mapSel && mapSel!==mapFocusId && mapSel.charAt(0)!=='c'){ openLoot(mapSel); } return; }
   var f=r1Focusables(); if(f[r1Idx]) f[r1Idx].click(); }
 document.addEventListener('keydown',function(ev){
@@ -585,6 +598,7 @@ document.addEventListener('keydown',function(ev){
 });
 window.addEventListener('wheel',function(ev){ if(ev.deltaY!==0) r1Move(ev.deltaY>0?1:-1); },{passive:true});
 document.addEventListener('click',function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('button, input, [onclick]'):null; if(!t) return;
+  if(t.classList&&t.classList.contains('back')) sndBack(); else if(t.tagName!=='INPUT') sndSelect();
   var f=r1Focusables(), i=f.indexOf(t); if(i>=0){ r1Idx=i; r1Highlight(false); } },true);
 var _r1Render=render;
 render=function(){ _r1Render(); setTimeout(r1InitFocus,0); };
