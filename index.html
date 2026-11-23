@@ -137,6 +137,8 @@ img{display:block;max-width:100%}
 .lootrow img{width:44px;height:44px;object-fit:cover;border-radius:6px}
 .lootrow .ln{font-size:12px}
 .lootrow .ld{font-size:10px;color:var(--dim)}
+.wchip{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.6px;color:#08130f;background:var(--teal);border-radius:6px;padding:1px 5px;vertical-align:2px;margin-left:4px}
+.lootrow img.wthumb{width:64px;height:64px}
 .warn{background:rgba(255,77,94,.14);border:1px solid var(--red);border-radius:9px;padding:7px 9px;font-size:11px;margin:8px 10px 0;line-height:1.45}
 .note{background:rgba(0,229,199,.08);border:1px solid #1f7a6d;border-radius:9px;padding:7px 9px;font-size:11px;margin:8px 10px 0;line-height:1.45}
 .tabs{display:flex;gap:6px;padding:10px 10px 0}
@@ -327,7 +329,7 @@ function lootDetail(e){
     h+='<div class="tabs"><button class="tab on">LOOT INFO</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
     h+='<div class="dsec"><h3>OBTAINABLE LOOT</h3>';
     e.loot.forEach(function(l){
-      h+='<div class="lootrow"><div><div class="ln">'+glowLoot(l)+'</div><div class="ld">'+esc(l.type||'')+(l.detail?' — '+esc(l.detail):'')+'</div></div></div>';
+      h+='<div class="lootrow">'+(l.image?'<img class="wthumb" loading="lazy" onerror="this.style.display=\'none\'" src="'+esc(l.image)+'" alt="">':'')+'<div><div class="ln">'+glowLoot(l)+(l.weapon_type?'<span class="wchip">'+esc(l.weapon_type)+'</span>':'')+'</div>'+(l.weapon_type?(l.detail?'<div class="ld">'+esc(l.detail)+'</div>':''):'<div class="ld">'+esc(l.type||'')+(l.detail?' — '+esc(l.detail):'')+'</div>')+(l.image_kind==='base'?'<div class="ld" style="font-style:italic">Photo shows the base model of this weapon.</div>':'')+'</div></div>';
     });
     h+='</div>';
     if(e.cash_estimate) h+='<div class="dsec"><h3>CASH &amp; SELLABLES</h3><p><span class="r-cash">'+esc(e.cash_estimate)+'</span></p></div>';
