@@ -116,6 +116,7 @@ img{display:block;max-width:100%}
 .card .nm{font-size:13px;font-weight:800;line-height:1.25}
 .card .ar{font-size:10px;color:var(--teal);margin-top:1px}
 .lootline{font-size:11px;margin-top:4px;line-height:1.45}
+.lootline .wt{color:var(--teal);font-weight:700;font-size:9px;letter-spacing:.4px;white-space:nowrap}
 .r-legendary{color:var(--gold);font-weight:800;text-shadow:0 0 7px rgba(255,211,77,.85)}
 .r-epic{color:var(--epic);font-weight:800;text-shadow:0 0 7px rgba(199,125,255,.8)}
 .r-cash{color:var(--cash);font-weight:800;text-shadow:0 0 6px rgba(61,255,124,.65)}
@@ -229,6 +230,7 @@ function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'
 function $(id){return document.getElementById(id);}
 function rarityClass(r){return 'r-'+(r||'other');}
 function glowLoot(l){return '<span class="'+rarityClass(l.rarity)+'">'+esc(l.name)+'</span>';}
+function shortType(wt){ var t=(wt||'').split('·')[0].split('(')[0].trim(); t=t.replace('SUBMACHINE GUN','SMG').replace('LIGHT MACHINE GUN','LMG').replace('SILENCED SNIPER RIFLE','SNIPER RIFLE').replace('SUPPRESSED PISTOL','PISTOL').replace('BULLPUP ASSAULT RIFLE','BULLPUP AR'); return t; }
 
 /* ---------- boot: remote data.json (auto-updates from GitHub), cache fallback ---------- */
 function boot(data,fromCache){
@@ -329,7 +331,7 @@ function lootCard(e){
   var h='<div class="card" onclick="openLoot(\''+e.id+'\')">';
   h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128176;</div>';
   h+='<div class="cb"><div class="nm">'+esc(e.name.replace(/\s*\(.*Operation\)/,''))+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
-  h+='<div class="lootline">'+e.loot.slice(0,3).map(glowLoot).join(' &middot; ')+'</div>';
+  h+='<div class="lootline">'+e.loot.slice(0,3).map(function(l){ return glowLoot(l)+(l.weapon_type?' <span class="wt">'+esc(shortType(l.weapon_type))+'</span>':''); }).join(' &middot; ')+'</div>';
   if(e.cash_estimate) h+='<div class="lootline"><span class="r-cash">'+esc(e.cash_estimate.split('.')[0].split('—')[0].slice(0,90))+'</span></div>';
   h+='<div class="badges">'+guardBadge(e.guards)+(e.missable?'<span class="bdg miss">&#9888; MISSABLE</span>':'')+(found?'<span class="bdg done">&#10003; LOOTED</span>':'')+'</div>';
   if(e.coords) h+='<button class="mapbtn" onclick="event.stopPropagation();openSpotMap(\'loot\',\''+e.id+'\')">&#128506; VIEW ON DYNAMIC MAP</button>';
