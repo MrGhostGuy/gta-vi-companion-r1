@@ -346,7 +346,7 @@ function renderHome(){
   h+='<div class="menu">';
   h+='<button class="mbtn tips" onclick="go(\'tips\')"><span class="ic">&#128161;</span><span><div class="t">TIPS &amp; TRICKS</div><div class="d">Hidden features, pro moves &amp; survival know-how</div></span><span class="n">'+((DATA.tips||[]).length)+' TIPS</span></button>';
   h+='<button class="mbtn loot" onclick="go(\'loot\')"><span class="ic">&#128176;</span><span><div class="t">HIDDEN LOOT</div><div class="d">Illegal ops, stash houses, unique weapons</div></span><span class="n">'+c.lf+'/'+c.l+'</span></button>';
-  h+='<button class="mbtn mapb" onclick="go(\'map\')"><span class="ic">&#128506;</span><span><div class="t">LEONIDA MAP</div><div class="d">Full dynamic map: every loot pin, pan &amp; zoom, your own markers</div></span><span class="n">'+pinTotal()+' PINS</span></button>';
+  h+='<button class="mbtn mapb" onclick="go(\'map\')"><span class="ic">&#128506;</span><span><div class="t">DYNAMIC MAP</div><div class="d">The full Leonida map: every loot pin, pan &amp; zoom, your own markers</div></span><span class="n">'+pinTotal()+' PINS</span></button>';
   h+='<button class="mbtn eggs" onclick="go(\'eggs\')"><span class="ic">&#129370;</span><span><div class="t">EASTER EGGS</div><div class="d">Secrets, sightings &amp; hidden scenes</div></span><span class="n">'+c.ef+'/'+c.e+'</span></button>';
   h+='<button class="mbtn cars" onclick="go(\'vehicles\')"><span class="ic">&#128663;</span><span><div class="t">SPECIAL VEHICLES</div><div class="d">Hidden cars &amp; their security: register or joyride?</div></span><span class="n">'+c.vf+'/'+c.v+'</span></button>';
   h+='<button class="mbtn story" onclick="go(\'story\')"><span class="ic">&#127902;</span><span><div class="t">STORY PROGRESSION</div><div class="d">Every main mission, in order, by chapter</div></span><span class="n">'+c.md+'/'+c.m+'</span></button>';
@@ -416,7 +416,7 @@ function lootCard(e){
 function renderLoot(){
   var h=topbar('HIDDEN <em>LOOT</em>')+searchbar('Search loot, weapons, places...');
   h+='<div class="filtrow"><button class="fchip'+(state.lootFilter==='all'?' on':'')+'" onclick="state.lootFilter=\'all\';render()">All</button><button class="fchip'+(state.lootFilter==='legendary'?' on':'')+'" onclick="state.lootFilter=\'legendary\';render()">&#11088; Legendary</button><button class="fchip'+(state.lootFilter==='chapter1'?' on':'')+'" onclick="state.lootFilter=\'chapter1\';render()">Chapter 1</button><button class="fchip'+(state.lootFilter==='todo'?' on':'')+'" onclick="state.lootFilter=\'todo\';render()">Not looted</button></div>';
-  h+='<button class="bigbtn" style="margin:8px 8px 0;width:calc(100% - 16px)" onclick="go(\'map\')">&#128506; FULL MAP — ALL LOOT PINS</button>';
+  h+='<button class="bigbtn" style="margin:8px 8px 0;width:calc(100% - 16px)" onclick="go(\'map\')">&#128506; DYNAMIC MAP — ALL LOOT PINS</button>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -779,8 +779,8 @@ function renderSpotMap(){ if(!SPOT){ go('home'); return; }
   $('app').innerHTML=h; maybeInitMap(); }
 function renderMapOverview(){
   PENDMAP={mode:'fit'};
-  var h=topbar('LEONIDA <em>MAP</em>');
-  h+='<div class="detail"><div class="dsec"><h3>&#128506; LEONIDA — DYNAMIC MAP</h3>'+mapHtml(null);
+  var h=topbar('DYNAMIC <em>MAP</em>');
+  h+='<div class="detail"><div class="dsec"><h3>&#128506; DYNAMIC MAP — LEONIDA</h3>'+mapHtml(null);
   h+='<div id="mapcard"><div class="mapcard"><div class="mn">Tap any pin</div><p style="font-size:11.5px;margin-top:3px">Tap the <b>&#9776; FILTER</b> button in the top-left corner of the map to open the checklist and choose what is plotted: gold = hidden loot, green = easter eggs, blue = special vehicles, white = POIs (shops &amp; services), cyan = your own markers. Tap a pin to preview it, tap again (or OPEN) to jump to its full card. Pins and area names hold their size at every zoom, and more names appear as you zoom in. Drag to pan, + / &minus; or double-tap to zoom. The <b>&#xff0b;</b> button drops your own cyan marker at the center of the view.</p></div></div>';
   h+='<p style="margin-top:6px;font-size:11px;color:var(--dim)">Map: community base map via gta6map.io. Pins matched from that map\'s own markers; 8 pins placed from written descriptions are marked approximate on their cards.</p></div></div>';
   $('app').innerHTML=h; maybeInitMap();
