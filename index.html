@@ -288,6 +288,22 @@ img{display:block;max-width:100%}
   .hero .vi{animation:none}
   body::before{animation:none}
 }
+
+/* ===== v4.0 visual cards ===== */
+.card .thumb{height:118px}
+.phwrap{position:relative;line-height:0}
+.phname{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 6px;background:linear-gradient(transparent,rgba(4,1,10,.92));color:#fff;font-family:'Pricedown Bl',Impact,sans-serif;font-size:15px;letter-spacing:.6px;line-height:1.15;text-shadow:0 1px 6px rgba(0,0,0,.85)}
+.reward{margin-top:6px;background:rgba(255,45,120,.06);border:1px solid rgba(255,45,120,.25);border-radius:9px;padding:6px 8px}
+.reward .rlab{font-size:8.5px;font-weight:800;letter-spacing:1.2px;color:var(--pink)}
+.reward .rline{font-size:13px;margin-top:1px;line-height:1.3}
+.reward .wt{color:var(--teal);font-weight:700;font-size:9px;letter-spacing:.4px;white-space:nowrap}
+.ichips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.ichip{background:rgba(0,229,255,.09);border:1px solid rgba(0,229,255,.35);color:#c8f7ff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;line-height:1.5}
+.ichip.gold{background:rgba(255,211,77,.13);border-color:rgba(255,211,77,.55);color:#ffe9a3}
+.ichip.pink{background:rgba(255,45,120,.12);border-color:rgba(255,45,120,.5);color:#ffb3c9}
+.ichip.dim{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.18);color:var(--dim)}
+.sortlab{font-size:9px;font-weight:800;letter-spacing:1.2px;color:var(--dim);align-self:center;margin-right:2px}
+@media (min-width:340px){ .list.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start} .list.grid .card{margin-bottom:0} .list.grid .card .thumb{height:104px} }
 </style>
 </head>
 <body>
@@ -402,20 +418,53 @@ function lootMatches(e){
   if(state.query){ var q=state.query.toLowerCase(), hay=(e.name+' '+e.area+' '+e.loot.map(function(l){return l.name;}).join(' ')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
   return true;
 }
+function weaponItem(e){
+  var ws=(e.loot||[]).filter(function(l){return l.image;});
+  if(!ws.length) return null;
+  var leg=ws.filter(function(l){return l.rarity==='legendary';});
+  return leg[0]||ws[0];
+}
+function cashMax(v){
+  if(!v) return 0;
+  var best=0;
+  (String(v).match(/\$([0-9][0-9,]*(?:\.[0-9]+)?)(k)?/gi)||[]).forEach(function(x){
+    var mm=x.match(/\$([0-9][0-9,]*(?:\.[0-9]+)?)(k)?/i); if(!mm) return;
+    var n=parseFloat(mm[1].replace(/,/g,'')); if(mm[2]) n*=1000; if(n>best) best=n;
+  });
+  return best;
+}
+function fmtCash(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
+function sortLoot(list){
+  var s=state.lootSort||'featured'; if(s==='featured') return list;
+  var a=list.slice();
+  if(s==='cash') a.sort(function(x,y){return cashMax(y.cash_estimate)-cashMax(x.cash_estimate);});
+  else if(s==='rarity') a.sort(function(x,y){ var lx=(x.loot||[]).filter(function(l){return l.rarity==='legendary';}).length, ly=(y.loot||[]).filter(function(l){return l.rarity==='legendary';}).length; if(ly!==lx) return ly-lx; return cashMax(y.cash_estimate)-cashMax(x.cash_estimate); });
+  else if(s==='az') a.sort(function(x,y){return x.name.localeCompare(y.name);});
+  return a;
+}
+function setLootSort(v){ state.lootSort=v; render(); }
 function lootCard(e){
-  var im=allImgs(e), found=!!store.found['l'+e.id];
+  var wi=weaponItem(e), im=allImgs(e), found=!!store.found['l'+e.id];
+  var thumb= wi? wi.image : (im.length? im[0] : null);
+  var top= wi || (e.loot||[])[0];
+  var rest=(e.loot||[]).filter(function(l){return l!==top;}).slice(0,2);
+  var cm=cashMax(e.cash_estimate);
+  var short=e.name.replace(/\s*\(.*Operation\)/,'');
   var h='<div class="card" onclick="openLoot(\''+e.id+'\')">';
-  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#128176;</div>';
-  h+='<div class="cb"><div class="nm">'+esc(e.name.replace(/\s*\(.*Operation\)/,''))+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
-  h+='<div class="lootline">'+e.loot.slice(0,3).map(function(l){ return glowLoot(l)+(l.weapon_type?' <span class="wt">'+esc(shortType(l.weapon_type))+'</span>':''); }).join(' &middot; ')+'</div>';
-  if(e.cash_estimate) h+='<div class="lootline"><span class="r-cash">'+esc(e.cash_estimate.split('.')[0].split('—')[0].slice(0,90))+'</span></div>';
-  h+='<div class="badges">'+guardBadge(e.guards)+(e.missable?'<span class="bdg miss">&#9888; MISSABLE</span>':'')+(found?'<span class="bdg done">&#10003; LOOTED</span>':'')+'</div>';
+  if(thumb) h+='<div class="phwrap"><img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(thumb)+'" alt=""><div class="phname">'+esc(short)+'</div></div>';
+  else h+='<div class="noimg">&#128176;</div><div class="cb" style="padding-bottom:0"><div class="nm">'+esc(short)+'</div></div>';
+  h+='<div class="cb"><div class="ar">&#128205; '+esc(e.area)+'</div>';
+  if(top) h+='<div class="reward"><span class="rlab">&#11088; TOP LOOT</span><div class="rline">'+glowLoot(top)+(top.weapon_type?' <span class="wt">'+esc(shortType(top.weapon_type))+'</span>':'')+'</div></div>';
+  if(rest.length) h+='<div class="lootline" style="color:var(--dim)">+ '+rest.map(function(l){return esc(l.name);}).join(', ')+'</div>';
+  h+='<div class="ichips">'+(cm?'<span class="ichip gold">&#128176; up to '+fmtCash(cm)+'</span>':'')+(e.respawns?'<span class="ichip">&#9851; Respawns</span>':'<span class="ichip dim">One-time</span>')+(e.missable?'<span class="ichip pink">&#9888; Missable</span>':'')+'</div>';
+  h+='<div class="badges">'+guardBadge(e.guards)+(found?'<span class="bdg done">&#10003; LOOTED</span>':'')+'</div>';
   if(e.coords) h+='<button class="mapbtn" onclick="event.stopPropagation();openSpotMap(\'loot\',\''+e.id+'\')">&#128506; VIEW ON DYNAMIC MAP</button>';
   return h+'</div></div>';
 }
 function renderLoot(){
   var h=topbar('HIDDEN <em>LOOT</em>')+searchbar('Search loot, weapons, places...');
   h+='<div class="filtrow"><button class="fchip'+(state.lootFilter==='all'?' on':'')+'" onclick="state.lootFilter=\'all\';render()">All</button><button class="fchip'+(state.lootFilter==='legendary'?' on':'')+'" onclick="state.lootFilter=\'legendary\';render()">&#11088; Legendary</button><button class="fchip'+(state.lootFilter==='chapter1'?' on':'')+'" onclick="state.lootFilter=\'chapter1\';render()">Chapter 1</button><button class="fchip'+(state.lootFilter==='todo'?' on':'')+'" onclick="state.lootFilter=\'todo\';render()">Not looted</button></div>';
+  h+='<div class="filtrow"><span class="sortlab">SORT</span><button class="fchip'+((state.lootSort||'featured')==='featured'?' on':'')+'" onclick="setLootSort(\'featured\')">Featured</button><button class="fchip'+(state.lootSort==='cash'?' on':'')+'" onclick="setLootSort(\'cash\')">&#128176; Cash</button><button class="fchip'+(state.lootSort==='rarity'?' on':'')+'" onclick="setLootSort(\'rarity\')">&#11088; Rarity</button><button class="fchip'+(state.lootSort==='az'?' on':'')+'" onclick="setLootSort(\'az\')">A-Z</button></div>';
   h+='<button class="bigbtn" style="margin:8px 8px 0;width:calc(100% - 16px)" onclick="go(\'map\')">&#128506; DYNAMIC MAP — ALL LOOT PINS</button>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
@@ -445,7 +494,8 @@ function lootDetail(e){
       h+='<div class="dsec"><h3>DIRECTIONS</h3>'+stepsHtml(e.directions)+'</div>';
     }
   } else {
-    if(li.length) h+='<img class="photo" onerror="this.style.display=\'none\'" src="'+esc(li[0])+'" alt="">';
+    var wi2=weaponItem(e), hero= wi2? wi2.image : (li.length? li[0] : null);
+    if(hero) h+='<img class="photo" onerror="this.style.display=\'none\'" src="'+esc(hero)+'" alt="">';
     h+='<div class="dsec"><div class="nm" style="font-size:15px;font-weight:800">'+esc(e.name)+'</div><div class="ar" style="font-size:11px;color:var(--teal)">&#128205; '+esc(e.area)+' &middot; '+esc(e.island_region||'')+'</div></div>';
     h+='<div class="tabs"><button class="tab on">LOOT INFO</button><button class="tab" onclick="state.detailTab=\'find\';render()">&#128205; FIND IT</button></div>';
     h+='<div class="dsec"><h3>OBTAINABLE LOOT</h3>';
@@ -534,12 +584,24 @@ function vehicleMatches(v){
   if(state.query){ var q=state.query.toLowerCase(), hay=(v.name+' '+v.area+' '+(v.real_world_equivalent||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
   return true;
 }
+function sortVeh(list){
+  var s=state.vehSort||'featured'; if(s==='featured') return list;
+  var a=list.slice();
+  if(s==='value') a.sort(function(x,y){return cashMax(y.security&&y.security.sell_value)-cashMax(x.security&&x.security.sell_value);});
+  else if(s==='keepers') a.sort(function(x,y){ var kx=regState(x).cls==='ok'?0:1, ky=regState(y).cls==='ok'?0:1; return kx-ky; });
+  else if(s==='az') a.sort(function(x,y){return x.name.localeCompare(y.name);});
+  return a;
+}
+function setVehSort(v){ state.vehSort=v; render(); }
 function vehicleCard(v){
   var im=allImgs(v), got=!!store.found['v'+v.id], rs=regState(v), air=v.category==='aircraft';
+  var sv=cashMax(v.security&&v.security.sell_value), rc=cashMax(v.security&&v.security.register_cost);
   var h='<div class="card" onclick="openVehicle(\''+v.id+'\')">';
-  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">'+(air?'&#9992;':'&#128663;')+'</div>';
-  h+='<div class="cb"><div class="nm">'+esc(v.name)+'</div><div class="ar">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>';
+  if(im.length) h+='<div class="phwrap"><img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt=""><div class="phname">'+esc(v.name)+'</div></div>';
+  else h+='<div class="noimg">'+(air?'&#9992;':'&#128663;')+'</div><div class="cb" style="padding-bottom:0"><div class="nm">'+esc(v.name)+'</div></div>';
+  h+='<div class="cb"><div class="ar">&#128205; '+esc(v.location_name)+' &middot; '+esc(v.area)+'</div>';
   if(v.real_world_equivalent) h+='<div class="lootline" style="color:var(--dim)">Real-world twin: '+esc(v.real_world_equivalent)+'</div>';
+  h+='<div class="ichips">'+(sv?'<span class="ichip gold">&#128176; Sell '+fmtCash(sv)+'</span>':'')+(rc?'<span class="ichip">Register '+fmtCash(rc)+'</span>':'')+((v.security&&v.security.key_cloner_needed)?'<span class="ichip pink">&#128273; Key Cloner</span>':'')+'</div>';
   h+='<div class="badges"><span class="bdg '+(rs.cls==='ok'?'done':rs.cls==='bad'?'g-high':'g-med')+'">'+(rs.cls==='ok'?(air?'KEEPABLE':'REGISTERABLE'):rs.cls==='bad'?(air?'JOYRIDE ONLY':'DRIVE-ONLY'):(air?'KEEP: UNKNOWN':'REGISTER: UNKNOWN'))+'</span>'+secBadges(v)+(got?'<span class="bdg done">&#10003; '+(air?'FLOWN IT':'GOT IT')+'</span>':'')+'</div>';
   return h+'</div></div>';
 }
@@ -547,6 +609,7 @@ function renderVehicles(){
   var all=DATA.vehicles||[], nc=all.filter(function(x){return (x.category||'car')==='car';}).length, na=all.length-nc, f=state.vfilter||'all';
   var h=topbar('SPECIAL <em>VEHICLES</em>')+searchbar('Search vehicles...');
   h+='<div class="chips"><button class="chip'+(f==='all'?' on':'')+'" onclick="setVFilter(\'all\')">All ('+all.length+')</button><button class="chip'+(f==='car'?' on':'')+'" onclick="setVFilter(\'car\')">&#128663; Cars ('+nc+')</button><button class="chip'+(f==='aircraft'?' on':'')+'" onclick="setVFilter(\'aircraft\')">&#9992; Aircraft ('+na+')</button></div>';
+  h+='<div class="filtrow"><span class="sortlab">SORT</span><button class="fchip'+((state.vehSort||'featured')==='featured'?' on':'')+'" onclick="setVehSort(\'featured\')">Featured</button><button class="fchip'+(state.vehSort==='value'?' on':'')+'" onclick="setVehSort(\'value\')">&#128176; Value</button><button class="fchip'+(state.vehSort==='keepers'?' on':'')+'" onclick="setVehSort(\'keepers\')">&#128273; Keepers</button><button class="fchip'+(state.vehSort==='az'?' on':'')+'" onclick="setVehSort(\'az\')">A-Z</button></div>';
   h+='<div class="note" style="margin:8px 8px 0">&#128663; <b>Cars:</b> security decides the prize — no tracker + no key needed = register and keep it (Moses, Chapter 2); advanced tracker or key cloner = joyride or sell. &#9992; <b>Aircraft:</b> guides are unanimous that found planes and helicopters <b>cannot be kept</b> — no hangar storage, no aircraft registration. The one exception is Kyle\'s Mallard, a quest plane. Everything else is a joyride.</div>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
@@ -789,11 +852,12 @@ function renderMapOverview(){
 /* ---------- render dispatch ---------- */
 function renderList(){
   var w=$('listwrap'); if(!w) return;
+  if(w.classList) w.classList.toggle('grid', state.screen==='loot'||state.screen==='vehicles');
   if(state.screen==='tips'){ var tl=(DATA.tips||[]).filter(function(t){ if(state.tipFilter && t.category!==state.tipFilter) return false; if(state.query){ var q=state.query.toLowerCase(); if((t.title+' '+t.body+' '+t.category).toLowerCase().indexOf(q)<0) return false; } return true; }); w.innerHTML=tl.length?tl.map(tipCard).join(''):'<div class="empty">No tips match.</div>'; }
-  else if(state.screen==='loot'){ var list=DATA.loot.filter(lootMatches); w.innerHTML=list.length?list.map(lootCard).join(''):'<div class="empty">No loot matches.</div>'; }
+  else if(state.screen==='loot'){ var list=sortLoot(DATA.loot.filter(lootMatches)); w.innerHTML=list.length?list.map(lootCard).join(''):'<div class="empty">No loot matches.</div>'; }
   else if(state.screen==='eggs'){ var list2=DATA.eggs.filter(eggMatches); w.innerHTML=list2.length?list2.map(eggCard).join(''):'<div class="empty">No easter eggs match.</div>'; }
   else if(state.screen==='story'){ w.innerHTML=storyHtml(); }
-  else if(state.screen==='vehicles'){ var list3=(DATA.vehicles||[]).filter(vehicleMatches); w.innerHTML=list3.length?list3.map(vehicleCard).join(''):'<div class="empty">No vehicles match.</div>'; }
+  else if(state.screen==='vehicles'){ var list3=sortVeh((DATA.vehicles||[]).filter(vehicleMatches)); w.innerHTML=list3.length?list3.map(vehicleCard).join(''):'<div class="empty">No vehicles match.</div>'; }
 }
 function render(){
   if(!DATA) return;
