@@ -304,6 +304,25 @@ img{display:block;max-width:100%}
 .ichip.dim{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.18);color:var(--dim)}
 .sortlab{font-size:9px;font-weight:800;letter-spacing:1.2px;color:var(--dim);align-self:center;margin-right:2px}
 @media (min-width:340px){ .list.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start} .list.grid .card{margin-bottom:0} .list.grid .card .thumb{height:104px} }
+
+/* ===== v4.1 polish: shimmer, motion, progress ===== */
+@keyframes legGlow{0%,100%{box-shadow:0 0 0 1px rgba(255,211,77,.5),0 2px 12px rgba(255,211,77,.16)}50%{box-shadow:0 0 0 1px rgba(255,211,77,.95),0 2px 20px rgba(255,211,77,.42)}}
+@keyframes epcGlow{0%,100%{box-shadow:0 0 0 1px rgba(199,125,255,.45),0 2px 12px rgba(199,125,255,.14)}50%{box-shadow:0 0 0 1px rgba(199,125,255,.9),0 2px 18px rgba(199,125,255,.36)}}
+.card.leg{border-color:rgba(255,211,77,.65);animation:riseIn .4s cubic-bezier(.22,.9,.26,1) both,legGlow 2.6s ease-in-out infinite .6s}
+.card.epc{border-color:rgba(199,125,255,.55);animation:riseIn .4s cubic-bezier(.22,.9,.26,1) both,epcGlow 3.4s ease-in-out infinite .6s}
+.card.leg .phwrap::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 32%,rgba(255,238,180,.30) 50%,transparent 66%);background-size:260% 100%;animation:sheen 3.6s ease-in-out infinite;pointer-events:none}
+@keyframes sheen{0%{background-position:130% 0}55%,100%{background-position:-130% 0}}
+.card .thumb{transition:transform .35s ease}
+.card:active .thumb{transform:scale(1.07)}
+.detail .dsec{animation:riseIn .45s cubic-bezier(.22,.9,.26,1) both}
+.detail .dsec:nth-of-type(2){animation-delay:.05s}.detail .dsec:nth-of-type(3){animation-delay:.1s}.detail .dsec:nth-of-type(4){animation-delay:.15s}.detail .dsec:nth-of-type(5){animation-delay:.2s}.detail .dsec:nth-of-type(6){animation-delay:.25s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+.mbtn .ic{display:inline-block;animation:bob 2.8s ease-in-out infinite}
+.menu .mbtn:nth-child(2) .ic{animation-delay:.35s}.menu .mbtn:nth-child(3) .ic{animation-delay:.7s}.menu .mbtn:nth-child(4) .ic{animation-delay:1.05s}.menu .mbtn:nth-child(5) .ic{animation-delay:1.4s}.menu .mbtn:nth-child(6) .ic{animation-delay:1.75s}.menu .mbtn:nth-child(7) .ic{animation-delay:2.1s}
+.chbar{height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin:0 2px 7px;overflow:hidden}
+.chbar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--pink));border-radius:2px;transition:width .7s cubic-bezier(.22,.9,.26,1)}
+.sumline{font-size:10px;color:var(--dim);margin:7px 10px 0;letter-spacing:.3px}
+.sumline b{color:var(--teal)}
 </style>
 </head>
 <body>
@@ -450,7 +469,8 @@ function lootCard(e){
   var rest=(e.loot||[]).filter(function(l){return l!==top;}).slice(0,2);
   var cm=cashMax(e.cash_estimate);
   var short=e.name.replace(/\s*\(.*Operation\)/,'');
-  var h='<div class="card" onclick="openLoot(\''+e.id+'\')">';
+  var tier=(e.loot||[]).some(function(l){return l.rarity==='legendary';})?' leg':((e.loot||[]).some(function(l){return l.rarity==='epic';})?' epc':'');
+  var h='<div class="card'+tier+'" onclick="openLoot(\''+e.id+'\')">';
   if(thumb) h+='<div class="phwrap"><img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(thumb)+'" alt=""><div class="phname">'+esc(short)+'</div></div>';
   else h+='<div class="noimg">&#128176;</div><div class="cb" style="padding-bottom:0"><div class="nm">'+esc(short)+'</div></div>';
   h+='<div class="cb"><div class="ar">&#128205; '+esc(e.area)+'</div>';
@@ -466,6 +486,7 @@ function renderLoot(){
   h+='<div class="filtrow"><button class="fchip'+(state.lootFilter==='all'?' on':'')+'" onclick="state.lootFilter=\'all\';render()">All</button><button class="fchip'+(state.lootFilter==='legendary'?' on':'')+'" onclick="state.lootFilter=\'legendary\';render()">&#11088; Legendary</button><button class="fchip'+(state.lootFilter==='chapter1'?' on':'')+'" onclick="state.lootFilter=\'chapter1\';render()">Chapter 1</button><button class="fchip'+(state.lootFilter==='todo'?' on':'')+'" onclick="state.lootFilter=\'todo\';render()">Not looted</button></div>';
   h+='<div class="filtrow"><span class="sortlab">SORT</span><button class="fchip'+((state.lootSort||'featured')==='featured'?' on':'')+'" onclick="setLootSort(\'featured\')">Featured</button><button class="fchip'+(state.lootSort==='cash'?' on':'')+'" onclick="setLootSort(\'cash\')">&#128176; Cash</button><button class="fchip'+(state.lootSort==='rarity'?' on':'')+'" onclick="setLootSort(\'rarity\')">&#11088; Rarity</button><button class="fchip'+(state.lootSort==='az'?' on':'')+'" onclick="setLootSort(\'az\')">A-Z</button></div>';
   h+='<button class="bigbtn" style="margin:8px 8px 0;width:calc(100% - 16px)" onclick="go(\'map\')">&#128506; DYNAMIC MAP — ALL LOOT PINS</button>';
+  h+='<div class="sumline">'+DATA.loot.length+' spots &middot; <b>'+DATA.loot.filter(function(x){return (x.loot||[]).some(function(l){return l.rarity==='legendary';});}).length+' with a legendary</b> &middot; '+DATA.loot.filter(function(x){return x.respawns;}).length+' respawn</div>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -522,15 +543,18 @@ function eggMatches(e){
 function eggCard(e){
   var im=allImgs(e), found=!!store.found['e'+e.id];
   var h='<div class="card" onclick="openEgg(\''+e.id+'\')">';
-  h+= im.length? '<img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt="">' : '<div class="noimg">&#129370;</div>';
-  h+='<div class="cb"><div class="nm">'+esc(e.name)+'</div><div class="ar">&#128205; '+esc(e.area)+'</div>';
+  if(im.length) h+='<div class="phwrap"><img class="thumb" onerror="this.style.display=\'none\'" loading="lazy" src="'+esc(im[0])+'" alt=""><div class="phname">'+esc(e.name)+'</div></div>';
+  else h+='<div class="noimg">&#129370;</div><div class="cb" style="padding-bottom:0"><div class="nm">'+esc(e.name)+'</div></div>';
+  h+='<div class="cb"><div class="ar">&#128205; '+esc(e.area)+'</div>';
   h+='<div class="lootline" style="color:var(--dim)">'+esc(String(e.what_it_is||'').slice(0,110))+'...</div>';
-  h+='<div class="badges"><span class="bdg">'+esc(e.category)+'</span>'+(e.best_time?'<span class="bdg">&#128336; '+esc(e.best_time)+'</span>':'')+(found?'<span class="bdg done">&#10003; SEEN</span>':'')+'</div>';
+  h+='<div class="ichips"><span class="ichip">'+esc(e.category)+'</span>'+(e.best_time?'<span class="ichip dim">&#128336; '+esc(e.best_time)+'</span>':'')+'</div>';
+  h+='<div class="badges">'+(found?'<span class="bdg done">&#10003; SEEN</span>':'')+'</div>';
   if(e.coords) h+='<button class="mapbtn" onclick="event.stopPropagation();openSpotMap(\'egg\',\''+e.id+'\')">&#128506; VIEW ON DYNAMIC MAP</button>';
   return h+'</div></div>';
 }
 function renderEggs(){
   var h=topbar('EASTER <em>EGGS</em>')+searchbar('Search easter eggs...');
+  h+='<div class="sumline">'+DATA.eggs.length+' secrets &middot; <b>'+DATA.eggs.filter(function(x){return x.coords;}).length+' on the map</b></div>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -611,6 +635,7 @@ function renderVehicles(){
   h+='<div class="chips"><button class="chip'+(f==='all'?' on':'')+'" onclick="setVFilter(\'all\')">All ('+all.length+')</button><button class="chip'+(f==='car'?' on':'')+'" onclick="setVFilter(\'car\')">&#128663; Cars ('+nc+')</button><button class="chip'+(f==='aircraft'?' on':'')+'" onclick="setVFilter(\'aircraft\')">&#9992; Aircraft ('+na+')</button></div>';
   h+='<div class="filtrow"><span class="sortlab">SORT</span><button class="fchip'+((state.vehSort||'featured')==='featured'?' on':'')+'" onclick="setVehSort(\'featured\')">Featured</button><button class="fchip'+(state.vehSort==='value'?' on':'')+'" onclick="setVehSort(\'value\')">&#128176; Value</button><button class="fchip'+(state.vehSort==='keepers'?' on':'')+'" onclick="setVehSort(\'keepers\')">&#128273; Keepers</button><button class="fchip'+(state.vehSort==='az'?' on':'')+'" onclick="setVehSort(\'az\')">A-Z</button></div>';
   h+='<div class="note" style="margin:8px 8px 0">&#128663; <b>Cars:</b> security decides the prize — no tracker + no key needed = register and keep it (Moses, Chapter 2); advanced tracker or key cloner = joyride or sell. &#9992; <b>Aircraft:</b> guides are unanimous that found planes and helicopters <b>cannot be kept</b> — no hangar storage, no aircraft registration. The one exception is Kyle\'s Mallard, a quest plane. Everything else is a joyride.</div>';
+  h+='<div class="sumline">'+(DATA.vehicles||[]).length+' vehicles &middot; <b>'+(DATA.vehicles||[]).filter(function(x){return regState(x).cls==='ok';}).length+' you can keep</b> &middot; '+(DATA.vehicles||[]).filter(function(x){return x.category==='aircraft';}).length+' aircraft</div>';
   h+='<div class="list" id="listwrap"></div>';
   $('app').innerHTML=h; renderList();
 }
@@ -704,7 +729,7 @@ function storyHtml(){
         h+='<div class="mrow'+(isdone?' isdone':'')+(isnext?' next':'')+'" onclick="openMission('+m.overall_number+')"><span class="no">'+m.number_in_chapter+'.</span><span class="mn">'+esc(m.name)+(isnext?' &#9664; UP NEXT':'')+'</span>'+(m.missable_warning?'<span style="color:var(--red);font-size:11px">&#9888;</span>':'')+'<span class="chk" onclick="event.stopPropagation();toggleMission('+m.overall_number+')">'+(isdone?'&#10003;':'')+'</span></div>';
       });
     }
-    h+='</div>';
+    h+='<div class="chbar"><i style="width:'+(list.length?Math.round(done/list.length*100):0)+'%"></i></div></div>';
   });
   return h;
 }
